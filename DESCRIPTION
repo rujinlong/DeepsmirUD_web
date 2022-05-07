@@ -1,9 +1,19 @@
 Package: DeepsmirUD_web
-Title: What the Package Does (One Line, Title Case)
+Title: Shiny APP for DeepsmirUD
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+    person("Jinlong", "Ru", , "jinlong.ru@gmail.com", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-6757-6018"))
+Description: Shiny APP for DeepsmirUD.
 License: GPL (>= 3)
 Encoding: UTF-8
+URL: https://github.com/rujinlong/DeepsmirUD_web
+BugReports: https://github.com/rujinlong/DeepsmirUD_web/issues
+Imports: 
+    dplyr,
+    here,
+    reactable,
+    readxl,
+    shiny,
+    shinythemes,
+    tidyverse
