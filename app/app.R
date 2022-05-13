@@ -8,9 +8,8 @@ library(heatmaply)
 library(corrplot)
 
 # ========== DATA =========
-dpath <- here("data")
-fpath1 <- here(dpath, "data1.xlsx")
-fpath2 <- here(dpath, "data2.xlsx")
+fpath1 <- "data/data1.xlsx"
+fpath2 <- "data/data2.xlsx"
 
 # ------------- UI ---------------
 sideP <- sidebarPanel(
@@ -34,7 +33,9 @@ mainP <- mainPanel(
 )
 
 navP_Tables <- tabPanel("Tables", sidebarLayout(sideP, mainP))
-ui <- navbarPage("DeepsmirUD", navP_Tables, theme = shinytheme("cerulean"))
+navP_Docs <- tabPanel("Documentation", mainPanel())
+
+ui <- navbarPage("DeepsmirUD", navP_Tables, navP_Docs, theme = shinytheme("cerulean"))
 
 # ------------ Server --------
 server <- function(input, output) {
