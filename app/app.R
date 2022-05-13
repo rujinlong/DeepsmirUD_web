@@ -4,6 +4,8 @@ library(here)
 library(tidyverse)
 library(readxl)
 library(reactable)
+library(heatmaply)
+library(corrplot)
 
 # ========== DATA =========
 dpath <- here("data")
@@ -21,7 +23,12 @@ sideP <- sidebarPanel(
 mainP <- mainPanel(
   tabsetPanel(
     tabPanel("Data1", reactableOutput("tbl_data1")),
-    tabPanel("Data2", reactableOutput("tbl_data2"))
+    tabPanel("Data2", reactableOutput("tbl_data2")),
+    tabPanel("heatmap", plotlyOutput("heatmapPlot", height="1100px")),
+    tabPanel("plots",
+             plotlyOutput("df1_replot"),
+             plotlyOutput("df1_hist"),
+             fluidRow(column(width = 6, plotOutput("df1_clustermap")), column(width=6, plotlyOutput("df1_replot2")))),
   ),
   width = 9
 )
@@ -97,6 +104,57 @@ server <- function(input, output) {
               sortable = TRUE,
               filterable = TRUE,
               highlight = TRUE)
+  })
+
+  df4plot <- reactive({
+    df_data1() %>%
+      dplyr::select(c(AlexNet, BiRNN, RNN, Seq2Seq, CNN, ConvMixer64, DSConv, LSTMCNN, MobileNetV2, ResNet18, ResNet50, SCAResNet18))
+    # save(df, file = "~/df.Rdata")
+  })
+
+  df1 <- reactive({
+    df <- df4plot()
+    df %>%
+      pivot_longer(names_to = "variable",
+                   values_to = "value",
+                   cols = colnames(.)) %>%
+      mutate(a = sort(rep(1:nrow(df), ncol(df))) - 1)
+  })
+
+  # heatmap
+  output$heatmapPlot <- renderPlotly({
+    df4plot() %>% heatmaply()
+  })
+
+  # df1: replot
+  output$df1_replot <- renderPlotly({
+    p <- df1() %>%
+      ggplot(aes(x=a, y=value, color=variable)) +
+      geom_line() +
+      facet_wrap("variable")
+    ggplotly(p)
+  })
+
+  # df1: hist
+  output$df1_hist <- renderPlotly({
+    p <- df1() %>%
+      mutate(value = log10(value)) %>%
+      ggplot(aes(x=value, fill=variable)) +
+      geom_histogram()
+    ggplotly(p)
+  })
+
+  # df1: clustermap
+  output$df1_clustermap <- renderPlot({
+    corrplot(cor(df4plot()))
+  })
+
+  # df1: replot2
+  output$df1_replot2 <- renderPlotly({
+    p <- df1() %>%
+      ggplot(aes(x=a, y=value, size = value, color = variable)) +
+      geom_point()
+    ggplotly(p)
   })
 }
 
