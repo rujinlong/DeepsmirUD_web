@@ -10,6 +10,10 @@ library(corrplot)
 # ========== DATA =========
 fpath1 <- "data/data1.xlsx"
 fpath2 <- "data/data2.xlsx"
+fp_disease <- "data/disease.xlsx"
+df_disease <- read_excel(fp_disease, sheet = "mircancer")
+df_dsu <- read_excel(fp_disease, sheet = "deepsmirud")
+disease_names <- sort(unique(df_disease$disease_name))
 
 # ------------- UI ---------------
 sideP <- sidebarPanel(
@@ -18,6 +22,11 @@ sideP <- sidebarPanel(
   uiOutput("ds1_col4"),
   width = 3
 )
+sideP_disease <- sidebarPanel(
+  uiOutput("disease"),
+  width = 3
+)
+
 # ---------- main UI --------
 mainP <- mainPanel(
   tabsetPanel(
@@ -31,11 +40,18 @@ mainP <- mainPanel(
   ),
   width = 9
 )
+mainP_disease <- mainPanel(
+  tabsetPanel(
+    tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu"))
+  ),
+  width = 9
+)
 
 navP_Tables <- tabPanel("Tables", sidebarLayout(sideP, mainP))
 navP_Docs <- tabPanel("Documentation", mainPanel())
+navP_Disease <- tabPanel("Disease", sidebarLayout(sideP_disease, mainP_disease))
 
-ui <- navbarPage("DeepsmirUD", navP_Tables, navP_Docs, theme = shinytheme("cerulean"))
+ui <- navbarPage("DeepsmirUD", navP_Tables, navP_Docs, navP_Disease, theme = shinytheme("cerulean"))
 
 # ------------ Server --------
 server <- function(input, output) {
@@ -55,13 +71,18 @@ server <- function(input, output) {
                 multiple = TRUE,
                 selectize = T)
   })
+  output$disease <- renderUI({
+    selectInput("disease", "Select disease", disease_names)
+  })
 
   # =========== REACTIVE ============
   df_data1 <- reactive({
     df <- read_excel(fpath1, sheet = input$data1_sheets)
-    })
+  })
 
   df_data2 <- reactive({df <- read_excel(fpath2)})
+
+
 
   # ========== OUTPUT =============
   output$tbl_data1 <- renderReactable({
@@ -105,6 +126,34 @@ server <- function(input, output) {
               sortable = TRUE,
               filterable = TRUE,
               highlight = TRUE)
+  })
+
+  subset_disease <- reactive({
+    df_disease %>%
+      dplyr::filter(disease_name == input$disease)
+  })
+
+  subset_dsu <- reactive({
+    df_dsu %>%
+      dplyr::filter(mirna_baseid %in% unique(subset_disease()$mirna_baseid))
+  })
+
+  output$tbl_disease_cancer <- renderReactable({
+    subset_disease() %>%
+      dplyr::select(-pubmed_article) %>%
+      distinct() %>%
+      reactable(searchable = TRUE,
+                sortable = TRUE,
+                filterable = TRUE,
+                highlight = TRUE)
+  })
+
+  output$tbl_disease_dsu <- renderReactable({
+    subset_dsu() %>%
+      reactable(searchable = TRUE,
+                sortable = TRUE,
+                filterable = TRUE,
+                highlight = TRUE)
   })
 
   df4plot <- reactive({
