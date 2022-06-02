@@ -11,9 +11,11 @@ library(corrplot)
 fpath1 <- "data/data1.xlsx"
 fpath2 <- "data/data2.xlsx"
 fp_disease <- "data/disease.xlsx"
+fp_cmap <- "data/cmap_score.RDS"
 df_disease <- read_excel(fp_disease, sheet = "mircancer")
 df_dsu <- read_excel(fp_disease, sheet = "deepsmirud")
 disease_names <- sort(unique(df_disease$disease_name))
+df_cmap <- readRDS(fp_cmap)
 
 # ------------- UI ---------------
 sideP <- sidebarPanel(
@@ -42,6 +44,7 @@ mainP <- mainPanel(
 )
 mainP_disease <- mainPanel(
   tabsetPanel(
+    tabPanel("cmap", reactableOutput("tbl_cmap")),
     tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu"))
   ),
   width = 9
@@ -148,12 +151,28 @@ server <- function(input, output) {
                 highlight = TRUE)
   })
 
+
   output$tbl_disease_dsu <- renderReactable({
     subset_dsu() %>%
       reactable(searchable = TRUE,
                 sortable = TRUE,
                 filterable = TRUE,
                 highlight = TRUE)
+  })
+
+  output$tbl_cmap <- renderReactable({
+    df_cmap[[input$disease]] %>%
+      arrange(desc(Score)) %>%
+      rownames_to_column("compound_name") %>%
+      reactable(searchable = TRUE,
+                sortable = TRUE,
+                filterable = TRUE,
+                highlight = TRUE,
+                columns = list(
+                  compound_name = colDef(cell = function(value, index) {
+                    url <- sprintf('https://www.google.com/search?q="%s" +%s', input$disease, value)
+                    htmltools::tags$a(href = url, target = "_blank", as.character(value))
+                  })))
   })
 
   df4plot <- reactive({
