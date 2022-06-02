@@ -164,6 +164,7 @@ server <- function(input, output) {
     df_cmap[[input$disease]] %>%
       arrange(desc(Score)) %>%
       rownames_to_column("compound_name") %>%
+      mutate(baidu=compound_name) %>%
       reactable(searchable = TRUE,
                 sortable = TRUE,
                 filterable = TRUE,
@@ -172,7 +173,12 @@ server <- function(input, output) {
                   compound_name = colDef(cell = function(value, index) {
                     url <- sprintf('https://www.google.com/search?q="%s" +%s', input$disease, value)
                     htmltools::tags$a(href = url, target = "_blank", as.character(value))
-                  })))
+                  }),
+                  baidu = colDef(cell = function(value, index) {
+                    url <- sprintf('https://www.baidu.com/s?wd="%s" +%s', input$disease, value)
+                    htmltools::tags$a(href = url, target = "_blank", as.character(value))
+                  })
+                  ))
   })
 
   df4plot <- reactive({
