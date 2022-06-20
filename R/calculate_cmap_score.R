@@ -1,6 +1,18 @@
+#!/usr/bin/env Rscript
+library(argparser)
 library(tidyverse)
 library(RCSM)
 
+p <- arg_parser("Calculating connectivity-map score")
+p <- add_argument(p, "rdata", help="profiles.Rdata")
+p <- add_argument(p, "method", help="KSScore, XSumScore, GSEAweight0Score, GSEAweight1Score, GSEAweight2Score, ZhangScore")
+p <- add_argument(p, "permuteNum", help="10000")
+p <- add_argument(p, "ncpu", help="10")
+p <- add_argument(p, "topN", help="500")
+p <- add_argument(p, "output", help="out.Rdata")
+argv <- parse_args(p)
+
+# ======== FUNCTIONS ==========
 run_cmap <- function(profile_s2m,
                      profile_d2m,
                      disease_name,
@@ -48,3 +60,24 @@ run_cmap <- function(profile_s2m,
 
   return(rst)
 }
+
+
+# =========== MAIN =============
+
+load(argv$rdata)
+
+# Calculate cmap score for each disease
+cmap_score <- list()
+for (disease in disease_names[1:2]) {
+  cmap_score[[dname]] <- run_cmap(profile_s2m,
+                                  profile_d2m,
+                                  disease,
+                                  method=method,
+                                  permuteNum = ncpu,
+                                  ncpu = ncpu,
+                                  topN = topN)
+}
+
+# Save results
+saveRDS(cmap_score, file = output)
+print(paste0("Results saved to ", output))

@@ -44,7 +44,7 @@ mainP <- mainPanel(
 )
 mainP_disease <- mainPanel(
   tabsetPanel(
-    tabPanel("cmap", reactableOutput("tbl_cmap")),
+    tabPanel("Connectivity score", reactableOutput("tbl_cmap")),
     tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu"))
   ),
   width = 9
@@ -160,6 +160,9 @@ server <- function(input, output) {
                 highlight = TRUE)
   })
 
+
+  # =========== cmap =============
+  # ----------- tbl: connectivity score ----------
   output$tbl_cmap <- renderReactable({
     df_cmap[[input$disease]] %>%
       arrange(desc(Score)) %>%

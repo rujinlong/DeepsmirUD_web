@@ -1,0 +1,110 @@
+---
+title: "00-create_d2m_s2m_profile"
+date: "Compiled at `r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
+output: github_document
+params:
+  name: "00-create_d2m_s2m_profile"
+---
+
+```{r here, message=FALSE, include=FALSE}
+here::i_am(paste0(params$name, ".Rmd"), uuid = "17d88d45-e612-4afa-a93a-c74025e9f801")
+```
+
+The purpose of this document is ...
+
+```{r packages, message=FALSE, warning=FALSE}
+library("conflicted")
+library(here)
+library(readxl)
+library(tidyverse)
+
+prj_path <- normalizePath("..")
+fpath <- here(prj_path, "data/disease.xlsx")
+
+# for sm2miRNA profile normalization
+deepsmirud_threshold <- 0.5
+```
+
+```{r directories, include=FALSE}
+# create or *empty* the target directory, used to write this file's data: 
+projthis::proj_create_dir_target(params$name, clean = TRUE)
+
+# function to get path to target directory: path_target("sample.csv")
+path_target <- projthis::proj_path_target(params$name)
+
+# function to get path to previous data: path_source("00-import", "sample.csv")
+path_source <- projthis::proj_path_source(params$name)
+```
+
+## Tasks
+
+The first task is ...
+
+-   Non-human miRNA were removed from DeepsmirUD predictions. 6841
+
+### Disease-miRNA regulation profile
+
+The disease-miRNA regulation profile is defined as a miRNA-disease matrix converted from wide to long format, and stored in `df_miRNA2disease` dataframe. Values in the matrix is either "up" or "down" indicate the miRNA is up or down-regulated in the disease. The regulation profile was obtained from [miRCancer](http://mircancer.ecu.edu/) database.
+
+```{r Import disease-miRNA regulation profile, message=FALSE, warning=FALSE}
+df_disease <- read_excel(fpath, sheet = "mircancer")
+disease_names <- unique(df_disease$disease_name)
+
+# disease-miRNA profile
+profile_d2m <- df_disease %>% 
+  mutate(miRNA_reg_profile = Profile, .keep = "unused") %>% 
+  dplyr::select(c(disease_name, mirna_baseid, miRNA_reg_profile))
+```
+
+There are `r length(unique(df_disease$mirna_baseid))` miRNAs involved in `r length(disease_names)` diseases (connectivity: `r 100 * nrow(profile_d2m) / (length(unique(df_disease$mirna_baseid)) * length(disease_names))`%).
+
+### SM-miRNA regulation profile
+
+The regulation profile was predicted using DeepsmirUD.
+
+```{r Import compound-miRNA regulation profile, message=FALSE, warning=FALSE}
+df_deepsmirud <- read_excel(fpath, sheet = "deepsmirud")
+
+# remove non-human miRNA
+df_deepsmirud_human <- df_deepsmirud %>% 
+  dplyr::filter(str_detect(mir_name, "^hsa") | str_detect(mir_name, "^mi"))
+
+# remove SM-miRNA pair redundancy by `mirna_baseid`
+# TODO: use more proper way to reduce redundancy
+df_deepsmirud_human_nr <- df_deepsmirud_human %>% 
+  dplyr::select(c(mirna_baseid, sm_name, DeepsmirUD)) %>% 
+  distinct(mirna_baseid, sm_name, .keep_all = T)
+
+# SM-miRNA profile in wide format
+profile_s2m_raw <- df_deepsmirud_human_nr %>% 
+  pivot_wider(names_from = sm_name, values_from = DeepsmirUD) %>% 
+  column_to_rownames("mirna_baseid")
+
+
+# --------- normalize and format SM-miRNA profile matrix -----------
+profile_s2m <- profile_s2m_raw - deepsmirud_threshold
+profile_s2m[is.na(profile_s2m)] <- 0
+
+# Change SM name so that they are distinct and satisfy DF column name requirement.
+colnames_old <- colnames(profile_s2m)
+colnames(profile_s2m) <- make.names(colnames(profile_s2m), unique = T)
+colnames_new <- colnames(profile_s2m)
+df_smname_mapping <- data.frame(colnames_new = colnames_new,
+                                colnames_old = colnames_old)
+```
+
+|              | Original                                       | Human                                                | Distinct              |
+|-----------------|-------------------|-------------------|-------------------|
+| Mirbase      | `r length(unique(df_deepsmirud$Mirbase))`      | `r length(unique(df_deepsmirud_human$Mirbase))`      |                       |
+| mirna_baseid | `r length(unique(df_deepsmirud$mirna_baseid))` | `r length(unique(df_deepsmirud_human$mirna_baseid))` | `r nrow(profile_s2m)` |
+
+There are `r nrow(profile_s2m)` miRNAs involved in `r ncol(profile_s2m)` small compounds (connectivity: `r nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))`%).
+
+## Files written
+
+These files have been written to the target directory, `r paste0("data/", params$name)`:
+
+```{r list-files-target}
+save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles.Rdata"))
+projthis::proj_dir_info(path_target())
+```
