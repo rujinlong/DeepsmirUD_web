@@ -17,6 +17,11 @@ df_dsu <- read_excel(fp_disease, sheet = "deepsmirud")
 disease_names <- sort(unique(df_disease$disease_name))
 df_cmap <- readRDS(fp_cmap)
 
+search_google <- function(value, index, disease) {
+  url <- sprintf('https://www.google.com/search?q="%s" +%s', disease, value)
+  htmltools::tags$a(href = url, target = "_blank", as.character(value))
+}
+
 # ------------- UI ---------------
 sideP <- sidebarPanel(
   uiOutput("data1_sheets"),
@@ -44,7 +49,7 @@ mainP <- mainPanel(
 )
 mainP_disease <- mainPanel(
   tabsetPanel(
-    tabPanel("Connectivity score", reactableOutput("tbl_cmap")),
+    tabPanel("Connectivity score", reactableOutput("cmap_ks"), reactableOutput("cmap_zh"),reactableOutput("cmap_g0"),reactableOutput("cmap_g1"),reactableOutput("cmap_g2"),reactableOutput("cmap_xs")),
     tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu"))
   ),
   width = 9
@@ -163,7 +168,7 @@ server <- function(input, output) {
 
   # =========== cmap =============
   # ----------- tbl: connectivity score ----------
-  output$tbl_cmap <- renderReactable({
+  output$cmap_ks <- renderReactable({
     df_cmap[[input$disease]] %>%
       arrange(desc(Score)) %>%
       rownames_to_column("compound_name") %>%
@@ -183,6 +188,8 @@ server <- function(input, output) {
                   })
                   ))
   })
+
+
 
   df4plot <- reactive({
     df_data1() %>%

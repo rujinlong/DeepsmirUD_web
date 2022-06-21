@@ -94,7 +94,7 @@ df_smname_mapping <- data.frame(colnames_new = colnames_new,
 ```
 
 |              | Original                                       | Human                                                | Distinct              |
-|-----------------|-------------------|-------------------|-------------------|
+|--------------|------------------------------------------------|------------------------------------------------------|-----------------------|
 | Mirbase      | `r length(unique(df_deepsmirud$Mirbase))`      | `r length(unique(df_deepsmirud_human$Mirbase))`      |                       |
 | mirna_baseid | `r length(unique(df_deepsmirud$mirna_baseid))` | `r length(unique(df_deepsmirud_human$mirna_baseid))` | `r nrow(profile_s2m)` |
 

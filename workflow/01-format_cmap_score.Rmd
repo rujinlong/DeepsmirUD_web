@@ -1,0 +1,149 @@
+---
+title: "01-format_cmap_score"
+date: "Compiled at `r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
+output: github_document
+params:
+  name: "01-format_cmap_score" # change if you rename file
+---
+
+```{r here, message=FALSE}
+here::i_am(paste0(params$name, ".Rmd"), uuid = "9fe50057-4d4c-47d3-96e3-5e0f783dddc3")
+```
+
+The purpose of this document is ...
+
+```{r packages}
+library("conflicted")
+library(here)
+library(tidyverse)
+library(pheatmap)
+library(patchwork)
+library("grid")
+library("gridExtra")
+```
+
+```{r directories}
+# create or *empty* the target directory, used to write this file's data: 
+projthis::proj_create_dir_target(params$name, clean = TRUE)
+
+# function to get path to target directory: path_target("sample.csv")
+path_target <- projthis::proj_path_target(params$name)
+
+# function to get path to previous data: path_source("00-import", "sample.csv")
+path_source <- projthis::proj_path_source(params$name)
+```
+
+## Tasks
+
+The first task is ...
+
+```{r load data}
+prj_path <- normalizePath("..")
+dpath <- here(prj_path, "data")
+
+load(here(dpath, "profiles.Rdata"))
+```
+
+
+```{r load functions}
+plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mapping, pval=0.05, ftitle="cmap", minN_miRNA=10, cluster = T, row_order=F, col_order=F) {
+  cmap_rst <- cmap_profile
+  
+  df <- data.frame(sm=names(profile_s2m))
+  for (disease in names(cmap_rst)) {
+    profile_d2m_sub <- profile_d2m %>%
+      dplyr::filter(disease_name == disease) %>%
+      dplyr::select(c(mirna_baseid, miRNA_reg_profile)) %>%
+      distinct() %>%
+      group_by(mirna_baseid) %>%
+      dplyr::filter(n()==1)    # remove miRNA that are both up and down-regulated in a disease
+    
+    # print(disease)
+    # print(dim(profile_d2m_sub))
+    cmap_one_disease <- cmap_rst[[disease]]
+    if (nrow(cmap_one_disease)>0) {
+      # If there are no enough miRNA for calculating cmap score, set their cmap score to 0
+      if (nrow(profile_d2m_sub) < minN_miRNA) {
+        cmap_one_disease["Score"] = 0
+        cmap_one_disease["pValue"] = 1
+        cmap_one_disease["pAdjValue"] = 1
+      }
+      
+      cmap_disease <- cmap_one_disease %>% 
+        dplyr::filter(pAdjValue < pval) %>% 
+        data.table::setnames("Score", disease) %>% 
+        dplyr::select(disease) %>% 
+        rownames_to_column("sm")
+      df <- df %>% 
+        left_join(cmap_disease, by = "sm")
+    }
+  }
+  
+  df2 <- df %>%
+    mutate(colnames_new = sm, .keep = "unused") %>% 
+    left_join(df_smname_mapping, by = "colnames_new") %>% 
+    dplyr::select(-colnames_new) %>% 
+    column_to_rownames("colnames_old") %>% 
+    replace(is.na(.), 0) %>% 
+    t()
+  
+  if (row_order != FALSE) {
+    df2 <- df2[row_order,]
+  }
+  if (col_order != FALSE) {
+    df2 <- df2[, col_order]
+  }
+  
+  rg <- max(abs(df2))
+  p <- pheatmap(df2, fontsize_row = 1.6, fontsize_col = 0.5, width = 19, height = 5, 
+                filename = paste0("disease2sm_heatmap_", ftitle, ".pdf"), 
+                main = paste0(ftitle, " Score"),
+                cluster_cols = cluster, cluster_rows = cluster,
+                color=colorRampPalette(c("navy", "white", "red"))(100),
+                breaks = seq(-rg, rg, length.out = 100))
+  return(p)
+}
+```
+
+
+```{r format cmap score G1, fig.height=5, fig.width=18}
+cmap_ks <- readRDS(here(dpath, "KSScore.rds"))
+cmap_zh <- readRDS(here(dpath, "ZhangScore.rds"))
+cmap_g0 <- readRDS(here(dpath, "GSEAweight0Score.rds"))
+cmap_g1 <- readRDS(here(dpath, "GSEAweight1Score.rds"))
+cmap_g2 <- readRDS(here(dpath, "GSEAweight2Score.rds"))
+cmap_xs <- readRDS(here(dpath, "XSumScore.rds"))
+
+cluster <- F
+minNmiRNA <- 20
+fig_g1 <- plt_heatmap(cmap_g1, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight1", minNmiRNA, T)
+row_order <- fig_g1$tree_row$labels[fig_g1$tree_row$order]
+col_order <- fig_g1$tree_col$labels[fig_g1$tree_col$order]
+
+fig_g2 <- plt_heatmap(cmap_g2, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight2", minNmiRNA, cluster, row_order, col_order)
+fig_zh <- plt_heatmap(cmap_zh, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "Zhang", minNmiRNA, cluster, row_order, col_order)
+fig_ks <- plt_heatmap(cmap_ks, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "KS", minNmiRNA, cluster, row_order, col_order)
+fig_g0 <- plt_heatmap(cmap_g0, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight0", minNmiRNA, cluster, row_order, col_order)
+fig_xs <- plt_heatmap(cmap_xs, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "XSum", minNmiRNA, cluster, row_order, col_order)
+
+fig_compare <- grid.arrange(grobs = list(fig_g1[[4]],
+                                         fig_g2[[4]],
+                                         fig_zh[[4]],
+                                         fig_xs[[4]],
+                                         fig_ks[[4]],
+                                         fig_g0[[4]]),
+                            layout_matrix = matrix(1:6, ncol = 1))
+
+ggsave(file="disease2sm_heatmap.pdf", fig_compare, width = 20, height = 30)
+
+```
+
+
+
+## Files written
+
+These files have been written to the target directory, ```r paste0("data/", params$name)```:
+
+```{r list-files-target}
+projthis::proj_dir_info(path_target())
+```

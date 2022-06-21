@@ -72,10 +72,10 @@ for (disease in disease_names[1:2]) {
   cmap_score[[dname]] <- run_cmap(profile_s2m,
                                   profile_d2m,
                                   disease,
-                                  method=method,
-                                  permuteNum = ncpu,
-                                  ncpu = ncpu,
-                                  topN = topN)
+                                  method = argv$method,
+                                  permuteNum = argv$permuteNum,
+                                  ncpu = argv$ncpu,
+                                  topN = argv$topN)
 }
 
 # Save results
