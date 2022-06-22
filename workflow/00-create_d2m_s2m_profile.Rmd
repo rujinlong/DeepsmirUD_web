@@ -67,17 +67,18 @@ df_deepsmirud <- read_excel(fpath, sheet = "deepsmirud")
 
 # remove non-human miRNA
 df_deepsmirud_human <- df_deepsmirud %>% 
+  dplyr::filter(is_exp == "Y") %>% 
   dplyr::filter(str_detect(mir_name, "^hsa") | str_detect(mir_name, "^mi"))
 
 # remove SM-miRNA pair redundancy by `mirna_baseid`
 # TODO: use more proper way to reduce redundancy
 df_deepsmirud_human_nr <- df_deepsmirud_human %>% 
-  dplyr::select(c(mirna_baseid, sm_name, DeepsmirUD)) %>% 
+  dplyr::select(c(mirna_baseid, sm_name, DeepsmirUD_heatmap)) %>% 
   distinct(mirna_baseid, sm_name, .keep_all = T)
 
 # SM-miRNA profile in wide format
 profile_s2m_raw <- df_deepsmirud_human_nr %>% 
-  pivot_wider(names_from = sm_name, values_from = DeepsmirUD) %>% 
+  pivot_wider(names_from = sm_name, values_from = DeepsmirUD_heatmap) %>% 
   column_to_rownames("mirna_baseid")
 
 
@@ -91,20 +92,126 @@ colnames(profile_s2m) <- make.names(colnames(profile_s2m), unique = T)
 colnames_new <- colnames(profile_s2m)
 df_smname_mapping <- data.frame(colnames_new = colnames_new,
                                 colnames_old = colnames_old)
+
+save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles_deepsmirud_ref.Rdata"))
+nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))
 ```
 
 |              | Original                                       | Human                                                | Distinct              |
-|--------------|------------------------------------------------|------------------------------------------------------|-----------------------|
+|------------------|------------------|------------------|------------------|
 | Mirbase      | `r length(unique(df_deepsmirud$Mirbase))`      | `r length(unique(df_deepsmirud_human$Mirbase))`      |                       |
 | mirna_baseid | `r length(unique(df_deepsmirud$mirna_baseid))` | `r length(unique(df_deepsmirud_human$mirna_baseid))` | `r nrow(profile_s2m)` |
 
 There are `r nrow(profile_s2m)` miRNAs involved in `r ncol(profile_s2m)` small compounds (connectivity: `r nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))`%).
+
+```{r}
+df_deepsmirud <- read_excel(fpath, sheet = "deepsmirud")
+
+# remove non-human miRNA
+df_deepsmirud_human <- df_deepsmirud %>% 
+  dplyr::filter(is_exp == "Y") %>% 
+  dplyr::filter(str_detect(mir_name, "^hsa") | str_detect(mir_name, "^mi"))
+
+# remove SM-miRNA pair redundancy by `mirna_baseid`
+# TODO: use more proper way to reduce redundancy
+df_deepsmirud_human_nr <- df_deepsmirud_human %>% 
+  dplyr::select(c(mirna_baseid, sm_name, exp)) %>% 
+  distinct(mirna_baseid, sm_name, .keep_all = T)
+
+# SM-miRNA profile in wide format
+profile_s2m_raw <- df_deepsmirud_human_nr %>% 
+  pivot_wider(names_from = sm_name, values_from = exp) %>% 
+  column_to_rownames("mirna_baseid")
+
+
+# --------- normalize and format SM-miRNA profile matrix -----------
+profile_s2m <- profile_s2m_raw - deepsmirud_threshold
+profile_s2m[is.na(profile_s2m)] <- 0
+
+# Change SM name so that they are distinct and satisfy DF column name requirement.
+colnames_old <- colnames(profile_s2m)
+colnames(profile_s2m) <- make.names(colnames(profile_s2m), unique = T)
+colnames_new <- colnames(profile_s2m)
+df_smname_mapping <- data.frame(colnames_new = colnames_new,
+                                colnames_old = colnames_old)
+
+save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles_exp_ref.Rdata"))
+nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))
+```
+
+```{r}
+df_deepsmirud <- read_excel(fpath, sheet = "deepsmirud")
+
+# remove non-human miRNA
+df_deepsmirud_human <- df_deepsmirud %>% 
+  dplyr::filter(is_exp == "N") %>% 
+  dplyr::filter(str_detect(mir_name, "^hsa") | str_detect(mir_name, "^mi"))
+
+# remove SM-miRNA pair redundancy by `mirna_baseid`
+# TODO: use more proper way to reduce redundancy
+df_deepsmirud_human_nr <- df_deepsmirud_human %>% 
+  dplyr::select(c(mirna_baseid, sm_name, DeepsmirUD_heatmap)) %>% 
+  distinct(mirna_baseid, sm_name, .keep_all = T)
+
+# SM-miRNA profile in wide format
+profile_s2m_raw <- df_deepsmirud_human_nr %>% 
+  pivot_wider(names_from = sm_name, values_from = DeepsmirUD_heatmap) %>% 
+  column_to_rownames("mirna_baseid")
+
+
+# --------- normalize and format SM-miRNA profile matrix -----------
+profile_s2m <- profile_s2m_raw - deepsmirud_threshold
+profile_s2m[is.na(profile_s2m)] <- 0
+
+# Change SM name so that they are distinct and satisfy DF column name requirement.
+colnames_old <- colnames(profile_s2m)
+colnames(profile_s2m) <- make.names(colnames(profile_s2m), unique = T)
+colnames_new <- colnames(profile_s2m)
+df_smname_mapping <- data.frame(colnames_new = colnames_new,
+                                colnames_old = colnames_old)
+
+save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles_deepsmirud_novo.Rdata"))
+nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))
+```
+
+```{r}
+df_deepsmirud <- read_excel(fpath, sheet = "deepsmirud")
+
+# remove non-human miRNA
+df_deepsmirud_human <- df_deepsmirud %>% 
+  dplyr::filter(str_detect(mir_name, "^hsa") | str_detect(mir_name, "^mi"))
+
+# remove SM-miRNA pair redundancy by `mirna_baseid`
+# TODO: use more proper way to reduce redundancy
+df_deepsmirud_human_nr <- df_deepsmirud_human %>% 
+  dplyr::select(c(mirna_baseid, sm_name, DeepsmirUD_heatmap)) %>% 
+  distinct(mirna_baseid, sm_name, .keep_all = T)
+
+# SM-miRNA profile in wide format
+profile_s2m_raw <- df_deepsmirud_human_nr %>% 
+  pivot_wider(names_from = sm_name, values_from = DeepsmirUD_heatmap) %>% 
+  column_to_rownames("mirna_baseid")
+
+
+# --------- normalize and format SM-miRNA profile matrix -----------
+profile_s2m <- profile_s2m_raw - deepsmirud_threshold
+profile_s2m[is.na(profile_s2m)] <- 0
+
+# Change SM name so that they are distinct and satisfy DF column name requirement.
+colnames_old <- colnames(profile_s2m)
+colnames(profile_s2m) <- make.names(colnames(profile_s2m), unique = T)
+colnames_new <- colnames(profile_s2m)
+df_smname_mapping <- data.frame(colnames_new = colnames_new,
+                                colnames_old = colnames_old)
+
+save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles_deepsmirud.Rdata"))
+nrow(profile_s2m) / (nrow(profile_s2m) * ncol(profile_s2m))
+```
 
 ## Files written
 
 These files have been written to the target directory, `r paste0("data/", params$name)`:
 
 ```{r list-files-target}
-save(profile_d2m, profile_s2m, df_smname_mapping, disease_names, file = path_target("profiles.Rdata"))
 projthis::proj_dir_info(path_target())
 ```

@@ -11,7 +11,7 @@ library(corrplot)
 fpath1 <- "data/data1.xlsx"
 fpath2 <- "data/data2.xlsx"
 fp_disease <- "data/disease.xlsx"
-fp_cmap <- "data/cmap_score.RDS"
+fp_cmap <- "data/main/GSEAweight1Score.RDS"
 df_disease <- read_excel(fp_disease, sheet = "mircancer")
 df_dsu <- read_excel(fp_disease, sheet = "deepsmirud")
 disease_names <- sort(unique(df_disease$disease_name))
@@ -93,6 +93,7 @@ server <- function(input, output) {
 
 
   # ========== OUTPUT =============
+  # ----------- Data1 ---------------
   output$tbl_data1 <- renderReactable({
     df <- df_data1()
     if (!is.null(input$ds1_col1) & !is.null(input$ds1_col4)) {
@@ -108,32 +109,50 @@ server <- function(input, output) {
     if (input$data1_sheets == "Sheet1") {
       reactable(df)
     } else {
-      reactable(df,
-                searchable = TRUE,
-                sortable = TRUE,
-                filterable = TRUE,
-                highlight = TRUE,
-                columns = list(
-                  predicted_type = colDef(
-                    style = function(value) {
-                      if (value == "Upregulation") {
-                        color <- "#008000"
-                      } else if (value == "Downregulation") {
-                        color <- "#e00000"
+      df %>%
+        mutate(across(where(is.numeric), round, 4)) %>%
+        reactable(searchable = TRUE,
+                  sortable = TRUE,
+                  filterable = TRUE,
+                  highlight = TRUE,
+                  wrap = FALSE,
+                  resizable = TRUE,
+                  columns = list(
+                    predicted_type = colDef(
+                      style = function(value) {
+                        if (value == "Upregulation") {
+                          color <- "#008000"
+                        } else if (value == "Downregulation") {
+                          color <- "#e00000"
+                        }
+                        list(color = color, fontWeight = "bold")
                       }
-                      list(color = color, fontWeight = "bold")
-                    }
-                  )))
+                    )))
     }
   })
 
+  # -------------- Data2 --------------
   output$tbl_data2 <- renderReactable({
-    df <- df_data2()
+    df <- df_data2() %>%
+      mutate(across(where(is.numeric), round, 4))
     reactable(df,
               searchable = TRUE,
               sortable = TRUE,
+              wrap = FALSE,
+              resizable = TRUE,
               filterable = TRUE,
-              highlight = TRUE)
+              highlight = TRUE,
+              columns = list(
+                predicted_type = colDef(
+                  style = function(value) {
+                    if (value == "Upregulation") {
+                      color <- "#008000"
+                    } else if (value == "Downregulation") {
+                      color <- "#e00000"
+                    }
+                    list(color = color, fontWeight = "bold")
+                  }
+                )))
   })
 
   subset_disease <- reactive({

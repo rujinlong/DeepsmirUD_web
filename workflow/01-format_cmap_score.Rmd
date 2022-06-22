@@ -39,14 +39,23 @@ The first task is ...
 
 ```{r load data}
 prj_path <- normalizePath("..")
-dpath <- here(prj_path, "data")
 
-load(here(dpath, "profiles.Rdata"))
+# outdir <- "dud"
+# dpath <- here(prj_path, "data/dud")
+# load(path_source("00-create_d2m_s2m_profile", "profiles_deepsmirud_ref.Rdata"))
+# # 
+# outdir <- "exp"
+# dpath <- here(prj_path, "data/exp")
+# load(path_source("00-create_d2m_s2m_profile", "profiles_exp_ref.Rdata"))
+
+# main
+dpath <- here(prj_path, "data/main")
+load(path_source("00-create_d2m_s2m_profile", "profiles_deepsmirud.Rdata"))
 ```
 
 
 ```{r load functions}
-plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mapping, pval=0.05, ftitle="cmap", minN_miRNA=10, cluster = T, row_order=F, col_order=F) {
+plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mapping, pval=0.05, ftitle="cmap", minN_miRNA=5, total_miRNA=10, cluster = T, row_order=F, col_order=F, outdir = "heatmap") {
   cmap_rst <- cmap_profile
   
   df <- data.frame(sm=names(profile_s2m))
@@ -58,45 +67,63 @@ plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mappin
       group_by(mirna_baseid) %>%
       dplyr::filter(n()==1)    # remove miRNA that are both up and down-regulated in a disease
     
+    # up-regulated miRNA
+    qry_up <- profile_d2m_sub %>%
+      dplyr::filter(miRNA_reg_profile=="up") %>%
+      pull(mirna_baseid)
+  
+    # down-ragulated miRNA
+    qry_down <- profile_d2m_sub %>%
+      dplyr::filter(miRNA_reg_profile=="down") %>%
+      pull(mirna_baseid)
+    
     # print(disease)
     # print(dim(profile_d2m_sub))
     cmap_one_disease <- cmap_rst[[disease]]
     if (nrow(cmap_one_disease)>0) {
       # If there are no enough miRNA for calculating cmap score, set their cmap score to 0
-      if (nrow(profile_d2m_sub) < minN_miRNA) {
-        cmap_one_disease["Score"] = 0
-        cmap_one_disease["pValue"] = 1
-        cmap_one_disease["pAdjValue"] = 1
+      if (length(qry_up) < minN_miRNA | length(qry_down) < minN_miRNA) {
+        if (nrow(profile_d2m_sub) < total_miRNA) {
+          print(disease)
+          print(dim(profile_d2m_sub))
+          print(length(qry_up))
+          print(length(qry_down))
+          cmap_one_disease["Score"] = 0
+          cmap_one_disease["pValue"] = 1
+          cmap_one_disease["pAdjValue"] = 1
+        }
       }
       
-      cmap_disease <- cmap_one_disease %>% 
-        dplyr::filter(pAdjValue < pval) %>% 
-        data.table::setnames("Score", disease) %>% 
-        dplyr::select(disease) %>% 
+      # print(disease)
+      # return(cmap_one_disease)
+      cmap_disease <- cmap_one_disease %>%
+        dplyr::filter(pAdjValue < pval) %>%
+        data.table::setnames("Score", disease) %>%
+        dplyr::select(disease) %>%
         rownames_to_column("sm")
-      df <- df %>% 
+      df <- df %>%
         left_join(cmap_disease, by = "sm")
     }
   }
-  
+
   df2 <- df %>%
-    mutate(colnames_new = sm, .keep = "unused") %>% 
-    left_join(df_smname_mapping, by = "colnames_new") %>% 
-    dplyr::select(-colnames_new) %>% 
-    column_to_rownames("colnames_old") %>% 
-    replace(is.na(.), 0) %>% 
+    mutate(colnames_new = sm, .keep = "unused") %>%
+    left_join(df_smname_mapping, by = "colnames_new") %>%
+    dplyr::select(-colnames_new) %>%
+    column_to_rownames("colnames_old") %>%
+    replace(is.na(.), 0) %>%
     t()
-  
+
   if (row_order != FALSE) {
     df2 <- df2[row_order,]
   }
   if (col_order != FALSE) {
     df2 <- df2[, col_order]
   }
-  
+
   rg <- max(abs(df2))
-  p <- pheatmap(df2, fontsize_row = 1.6, fontsize_col = 0.5, width = 19, height = 5, 
-                filename = paste0("disease2sm_heatmap_", ftitle, ".pdf"), 
+  p <- pheatmap(df2, fontsize_row = 1.6, fontsize_col = 0.5, width = 19, height = 5,
+                filename = paste0(outdir, "/disease2sm_heatmap_", ftitle, ".pdf"),
                 main = paste0(ftitle, " Score"),
                 cluster_cols = cluster, cluster_rows = cluster,
                 color=colorRampPalette(c("navy", "white", "red"))(100),
@@ -110,32 +137,37 @@ plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mappin
 cmap_ks <- readRDS(here(dpath, "KSScore.rds"))
 cmap_zh <- readRDS(here(dpath, "ZhangScore.rds"))
 cmap_g0 <- readRDS(here(dpath, "GSEAweight0Score.rds"))
-cmap_g1 <- readRDS(here(dpath, "GSEAweight1Score.rds"))
 cmap_g2 <- readRDS(here(dpath, "GSEAweight2Score.rds"))
-cmap_xs <- readRDS(here(dpath, "XSumScore.rds"))
+# cmap_xs <- readRDS(here(dpath, "XSumScore.rds"))
 
 cluster <- F
-minNmiRNA <- 20
-fig_g1 <- plt_heatmap(cmap_g1, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight1", minNmiRNA, T)
+totalmiRNA <- 10
+minNmiRNA <- 5
+outdir <- paste0("main_", as.character(totalmiRNA), "_", as.character(minNmiRNA))
+dir.create(outdir)
+cmap_g1 <- readRDS(here(dpath, "GSEAweight1Score.rds"))
+pval <- 0.05
+fig_g1 <- plt_heatmap(cmap_g1, profile_s2m, profile_d2m, df_smname_mapping, pval, "GSEAweight1", minNmiRNA, totalmiRNA, T, F, F, outdir)
 row_order <- fig_g1$tree_row$labels[fig_g1$tree_row$order]
 col_order <- fig_g1$tree_col$labels[fig_g1$tree_col$order]
+# row_order <- F
+# col_order <- F
 
-fig_g2 <- plt_heatmap(cmap_g2, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight2", minNmiRNA, cluster, row_order, col_order)
-fig_zh <- plt_heatmap(cmap_zh, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "Zhang", minNmiRNA, cluster, row_order, col_order)
-fig_ks <- plt_heatmap(cmap_ks, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "KS", minNmiRNA, cluster, row_order, col_order)
-fig_g0 <- plt_heatmap(cmap_g0, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "GSEAweight0", minNmiRNA, cluster, row_order, col_order)
-fig_xs <- plt_heatmap(cmap_xs, profile_s2m, profile_d2m, df_smname_mapping, 0.05, "XSum", minNmiRNA, cluster, row_order, col_order)
+fig_g2 <- plt_heatmap(cmap_g2, profile_s2m, profile_d2m, df_smname_mapping, pval, "GSEAweight2", minNmiRNA, totalmiRNA,  cluster, row_order, col_order, outdir)
+fig_zh <- plt_heatmap(cmap_zh, profile_s2m, profile_d2m, df_smname_mapping, pval, "Zhang", minNmiRNA, totalmiRNA, cluster, row_order, col_order, outdir)
+fig_ks <- plt_heatmap(cmap_ks, profile_s2m, profile_d2m, df_smname_mapping, pval, "KS", minNmiRNA, totalmiRNA, cluster, row_order, col_order, outdir)
+fig_g0 <- plt_heatmap(cmap_g0, profile_s2m, profile_d2m, df_smname_mapping, pval, "GSEAweight0", minNmiRNA, totalmiRNA, cluster, row_order, col_order, outdir)
+# fig_xs <- plt_heatmap(cmap_xs, profile_s2m, profile_d2m, df_smname_mapping, pval, "XSum", minNmiRNA, cluster, row_order, col_order, outdir)
 
 fig_compare <- grid.arrange(grobs = list(fig_g1[[4]],
                                          fig_g2[[4]],
                                          fig_zh[[4]],
-                                         fig_xs[[4]],
+                                         # fig_xs[[4]],
                                          fig_ks[[4]],
                                          fig_g0[[4]]),
-                            layout_matrix = matrix(1:6, ncol = 1))
+                            layout_matrix = matrix(1:5, ncol = 1))
 
-ggsave(file="disease2sm_heatmap.pdf", fig_compare, width = 20, height = 30)
-
+ggsave(file=paste0(outdir, "/", outdir, "_disease2sm_heatmap.pdf"), fig_compare, width = 20, height = 25)
 ```
 
 
