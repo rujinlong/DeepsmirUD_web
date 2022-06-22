@@ -12,13 +12,12 @@ nextflow.enable.dsl=2
 include { CMAPSCORE_KS; CMAPSCORE_XSUM; CMAPSCORE_G0; CMAPSCORE_G1; CMAPSCORE_G2; CMAPSCORE_ZH } from "./module/cmap"
 
 workflow {
-    profile_ch = channel.fromFilePairs(params.profilefile)
-    CMAPSCORE_KS(profile_ch)
-    CMAPSCORE_XSUM(profile_ch)
-    CMAPSCORE_G0(profile_ch)
-    CMAPSCORE_G1(profile_ch)
-    CMAPSCORE_G2(profile_ch)
-    CMAPSCORE_ZH(profile_ch)
+    CMAPSCORE_KS()
+    CMAPSCORE_G0()
+    CMAPSCORE_G1()
+    CMAPSCORE_G2()
+    CMAPSCORE_ZH()
+    CMAPSCORE_XSUM()
 }
 
 
