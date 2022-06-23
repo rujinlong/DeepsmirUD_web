@@ -2,6 +2,7 @@
 title: "01-format_cmap_score"
 date: "Compiled at `r format(Sys.time(), '%Y-%m-%d %H:%M:%S')`"
 output: github_document
+zotero: true
 params:
   name: "01-format_cmap_score" # change if you rename file
 ---
@@ -53,9 +54,8 @@ dpath <- here(prj_path, "data/main")
 load(path_source("00-create_d2m_s2m_profile", "profiles_deepsmirud.Rdata"))
 ```
 
-
 ```{r load functions}
-plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mapping, pval=0.05, ftitle="cmap", minN_miRNA=5, total_miRNA=10, cluster = T, row_order=F, col_order=F, outdir = "heatmap") {
+plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mapping, pval=0.05, ftitle="cmap", minN_miRNA=5, total_miRNA=10, cluster = T, row_order=F, col_order=F, outdir = "heatmap", interactive=F) {
   cmap_rst <- cmap_profile
   
   df <- data.frame(sm=names(profile_s2m))
@@ -84,10 +84,6 @@ plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mappin
       # If there are no enough miRNA for calculating cmap score, set their cmap score to 0
       if (length(qry_up) < minN_miRNA | length(qry_down) < minN_miRNA) {
         if (nrow(profile_d2m_sub) < total_miRNA) {
-          print(disease)
-          print(dim(profile_d2m_sub))
-          print(length(qry_up))
-          print(length(qry_down))
           cmap_one_disease["Score"] = 0
           cmap_one_disease["pValue"] = 1
           cmap_one_disease["pAdjValue"] = 1
@@ -113,7 +109,11 @@ plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mappin
     column_to_rownames("colnames_old") %>%
     replace(is.na(.), 0) %>%
     t()
-
+  
+  # RCSM doesn't calculate average of up and down-regulated features,
+  # so here we divide RCSM calculated scores by 2 so that final scores in [-1, 1].
+  df2 <- df2/2
+  
   if (row_order != FALSE) {
     df2 <- df2[row_order,]
   }
@@ -124,14 +124,13 @@ plt_heatmap <- function(cmap_profile, profile_s2m, profile_d2m, df_smname_mappin
   rg <- max(abs(df2))
   p <- pheatmap(df2, fontsize_row = 1.6, fontsize_col = 0.5, width = 19, height = 5,
                 filename = paste0(outdir, "/disease2sm_heatmap_", ftitle, ".pdf"),
-                main = paste0(ftitle, " Score"),
+                main = paste0(ftitle, " Score ", nrow(df2), " * ", ncol(df2)),
                 cluster_cols = cluster, cluster_rows = cluster,
                 color=colorRampPalette(c("navy", "white", "red"))(100),
                 breaks = seq(-rg, rg, length.out = 100))
   return(p)
 }
 ```
-
 
 ```{r format cmap score G1, fig.height=5, fig.width=18}
 cmap_ks <- readRDS(here(dpath, "KSScore.rds"))
@@ -150,6 +149,8 @@ pval <- 0.05
 fig_g1 <- plt_heatmap(cmap_g1, profile_s2m, profile_d2m, df_smname_mapping, pval, "GSEAweight1", minNmiRNA, totalmiRNA, T, F, F, outdir)
 row_order <- fig_g1$tree_row$labels[fig_g1$tree_row$order]
 col_order <- fig_g1$tree_col$labels[fig_g1$tree_col$order]
+
+save(row_order, col_order, file = here(prj_path, "data/row_col_order.Rdata"))
 # row_order <- F
 # col_order <- F
 
@@ -170,11 +171,31 @@ fig_compare <- grid.arrange(grobs = list(fig_g1[[4]],
 ggsave(file=paste0(outdir, "/", outdir, "_disease2sm_heatmap.pdf"), fig_compare, width = 20, height = 25)
 ```
 
+```{r most prevalent SMs, fig.height=5, fig.width=9}
+# df2 from `data4heatmap.R`
+a <- colSums(df2 < -0)
 
+DT::datatable(data.frame(num_disease = sort(a[a > 12], decreasing=T)))
+
+ctop <- sort(a[a>12], decreasing=T)
+df_sel <- df2[, names(ctop)]
+
+b <- rowSums(df_sel != 0)
+rtop <- sort(b[b>3], decreasing=T)
+
+pheatmap(df2[names(rtop), names(ctop)], cluster_rows = F, cluster_cols = F,
+         color=colorRampPalette(c("navy", "white", "red"))(100),
+         main = "Top10 small molecules relavent to most number of cancers",
+         breaks = seq(-1, 1, length.out = 100))
+
+
+rsturl <- paste0("https://www.google.com/search?q=", head(names(ctop), 10), "+%2Bcancer")
+# lapply(rsturl, browseURL)
+```
 
 ## Files written
 
-These files have been written to the target directory, ```r paste0("data/", params$name)```:
+These files have been written to the target directory, `r paste0("data/", params$name)`:
 
 ```{r list-files-target}
 projthis::proj_dir_info(path_target())
