@@ -7,6 +7,7 @@ library(readxl)
 library(reactable)
 library(heatmaply)
 library(corrplot)
+library(knitr)
 
 # ========== DATA =========
 fpath1 <- "data/data1.xlsx"
@@ -23,28 +24,28 @@ d2sm_heatmap <- readRDS(fp_d2sm_heatmap)
 load(fp_profile)
 
 # ============ HOME ========
-sideP_Home <- navlistPanel(fluid = F)
 main_Home <- fixedPage(
-  h2("Background"),
-  p("DeepsmirUD-web catalogues predictions of SM-mediated regulatory effects upon miRNAs from all relations used in the DeepsmirUD paper. By trawling through miRNA-disease data from miRCancer, we also established a database of drug–cancer associations to provide potential therapeutics based on the SM-miR upregulation and downregulation profiles predicted by DeepsmirUD."),
-  h2("Introduction"),
-  p("MicroRNAs (miRNAs) are a class of non-coding RNAs, which are vital to biological activities by primarily virtue of their post-transcriptionally regulatory mechanisms. miRNAs are often known to downregulate the expression of genes by inhibiting translation or promoting the degradation of target mRNAs, thereby exerting an impact on the gene regulatory pathways to either remodel homeostasis or give rise to malignancy such as leukemia and osteoarthritis. It has been reported that up to thousands of mRNAs can be targeted by a single miRNA and vice versa. Therefore, there are a myriad of gateways for miRNAs to influence the regulated gene pathways. Growing evidence has particularly suggested that miRNAs play important roles in cancer and their expression abnormalities can lead to a variety of diseases or supress tumor progression. In this regard, therapeutics can be achieved by targeting oncogenic miRNAs with potential drug molecules to alter their expression. Existing experiments have revealed that many small molecules (SMs) have held great promise as pharmaceuticals to target the miRNAs to modulate their expression thereafter."),
-  p("According to the SM2miR database built based on more than 2000 publications, only 1.14% of all possible SM-miR pairs interwoven with 1492 unique miRNAs and 212 unique small molecules (after pre-processing) are catalogued to be experimentally verified (Figure 1). It is therefore in addition to the experimental profiling that much attention has been paid for designing computational techniques to speed up the inference of binding. A precise understanding of the types of SM-mediated regulation on miRNAs may provide direct or indirect evidence for cancer pathogenesis and therapeutics in the sense that the oncogenic signalling pathways regulated by the miRNAs are affected. Therefore, the efficient identification and the follow-up analysis of disease-associated miRNAs targeted by small molecule drugs with a measurable influence on the miRNA expression are becoming increasingly important and have emerged as a new therapeutic treatment in miRNA pharmacogenomics."),
-  HTML('<center><img src="fig1.svg" width=95%></center>'),
-  p("Figure 1. Data wrangling of upregulated and downregulated relations. a. Inference of potentially upregulated and downregulated relations using guilt-by-association. b. Flowchart of generating the Train, Test, TestSim, TestRptMIR, TestRptSM, TestUniqMIR, and TestUniqSM datasets."),
-  p("Advances in deep learning have spawned ample opportunity to promote biological applications and discoveries such as protein structural and functional prediction. In order for maximization of method performance specific to the regulatory effect prediction, we attempted to seek prime solutions from the computer-vision and speech-recognition fields by utilizing both well-established models including AlexNet, MobileNetV2, Transformer-based ConvMixer, ResNet18, ResNet50, attention-based SCAResNet18, and our self-assembly architectures, including convolutional neural networks (CNNs), recurrent neural networks (RNNs), bidirectional recurrent neural networks (BiRNNs), depth-wise and separable neural networks, the fusion of long short-term memory (LSTM) neural networks and CNNs, and sequence-to-sequence (Seq2Seq) neural networks. These models, the vast majority of which can be trained fast due to the residual connection in design or required parameter numbers, allow relatively full-scale examination and comparison of performance from shallow to ultradeep layers visually and semantically."),
-  HTML('<center><img src="fig2.svg" width=95%></center>'),
-  p("Figure 2. Workflow of predicting SM-mediated regulatory effects on miRNA expression by deep learning algorithms. In box Feature preparation, the integers stand for the length of features. The feature vector stands for a concatenation of miRNA and small-molecule features."),
-  p("A comprehensive analysis was made to opt for deep learning models optimized sufficiently and properly based on well-curated SM-miR relations and biophysical and biochemical features (Figure 2). In the context of achieving competing results (at least AUC 0.80-0.92) by individual models, the final ensemble model, DeepsmirUD, can tap into their variance-reduced prediction values to obtain an even further boosted performance gain up to ~2% in AUC and ~1-2% in AUCPR."),
+  withMathJax(includeMarkdown("www/homepage.md")),
   hr(),
   div(
     class = "footer",
     includeHTML("www/footer.html")
   )
 )
-# navP_Home <- tabPanel("Home", sidebarLayout(sideP_Home, main_Home))
 navP_Home <- tabPanel("Home", main_Home)
 
+
+# =========== TUTORIAL ===========
+mainP_Doc <- fixedPage(
+  withMathJax(includeMarkdown("www/tutorial.md")),
+  hr(),
+  div(
+    class = "footer",
+    includeHTML("www/footer.html")
+  )
+)
+
+navP_Doc <- tabPanel("Tutorial", mainP_Doc)
 
 
 # =========== TABLE ===========
@@ -70,17 +71,12 @@ mainP_TB <- mainPanel(
                ),
              ),
     tabPanel("Search Verse", reactableOutput("tbl_data2")),
-    hr(),
-    div(
-      class = "footer",
-      includeHTML("www/footer.html")
-    )
-
   ),
   width = 9
 )
 
 navP_TB <- tabPanel("Regulatory effect", sidebarLayout(sideP_TB, mainP_TB))
+
 
 # =========== DISEASE ============
 sideP_disease <- sidebarPanel(
@@ -93,11 +89,6 @@ mainP_disease <- mainPanel(
     tabPanel("Connectivity score", reactableOutput("cmap_ks"), reactableOutput("cmap_zh"),reactableOutput("cmap_g0"),reactableOutput("cmap_g1"),reactableOutput("cmap_g2"),reactableOutput("cmap_xs")),
     tabPanel("Drug-cancer association heatmap", fluidRow(plotlyOutput("heatmap_d2sm", height="800px"))),
     tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu")),
-    hr(),
-    div(
-      class = "footer",
-      includeHTML("www/footer.html")
-    )
   ),
   width = 9
 )
@@ -105,42 +96,18 @@ mainP_disease <- mainPanel(
 navP_Disease <- tabPanel("Drug-cancer association", sidebarLayout(sideP_disease, mainP_disease))
 
 
-
-# =========== SUPPLEMENTARY ===========
-sideP_SP <- sidebarPanel(
-  # uiOutput("data1_sheets"),
-  # uiOutput("ds1_col1"),
-  # uiOutput("ds1_col4"),
-  # width = 2
-)
-
-mainP_SP <- mainPanel(
-  # tabsetPanel(
-  #   tabPanel("Data1", reactableOutput("tbl_data1")),
-  #   tabPanel("Data2", reactableOutput("tbl_data2")),
-  #   tabPanel("heatmap", plotlyOutput("heatmapPlot", height="1100px")),
-  #   tabPanel("heatmap_d2sm", fluidRow(plotlyOutput("heatmap_d2sm", height="500px")))),
-  # width = 10
-)
-
-navP_SP <- tabPanel("Instruction", sidebarLayout(sideP_SP, mainP_SP))
-
-
 # ============ MAIN UI =============
 # ui <- navbarPage("DeepsmirUD_web", navP_Home, navP_TB, navP_Disease, theme = bs_theme(bootswatch="cerulean"))
-ui <- navbarPage("DeepsmirUD_web", navP_Home, navP_SP, navP_TB, navP_Disease, theme = shinytheme("cerulean"))
+ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, theme = shinytheme("cerulean"))
 
 
 # ------------ Server --------
 server <- function(input, output) {
-  # ========= DYNAMIC UI ==============
-  output$sup_left <- renderUI({
-    selectInput("data1_sheets", "Select sheets in data 1", excel_sheets(fpath1))
-  })
-
+  # ========== Dynamic UI:  TABLE side ==========
   output$data1_sheets <- renderUI({
     selectInput("data1_sheets", "Select sheets in data 1", excel_sheets(fpath1))
   })
+
   output$ds1_col1 <- renderUI({
     selectInput("ds1_col1", "cid",
                 sort(unique(df_data1()$cid)),
@@ -153,21 +120,22 @@ server <- function(input, output) {
                 multiple = TRUE,
                 selectize = T)
   })
+
+  # ============ Dynamic UI: DISEASE side =========
   output$disease <- renderUI({
     selectInput("disease", "Select disease", disease_names)
   })
 
-  # =========== REACTIVE ============
+  # -------------- Data: search all -----------
   df_data1 <- reactive({
     df <- read_excel(fpath1, sheet = input$data1_sheets)
   })
 
+  # -------------- Data: search Verse ---------
   df_data2 <- reactive({df <- read_excel(fpath2)})
 
-
-
   # ========== OUTPUT =============
-  # ----------- Data1 ---------------
+  # ----------- Render: search all ---------------
   output$tbl_data1 <- renderReactable({
     df <- df_data1()
     if (!is.null(input$ds1_col1) & !is.null(input$ds1_col4)) {
@@ -205,7 +173,7 @@ server <- function(input, output) {
     }
   })
 
-  # -------------- Data2 --------------
+  # -------------- Render: search Verse --------------
   output$tbl_data2 <- renderReactable({
     df <- df_data2() %>%
       mutate(across(where(is.numeric), round, 4))
@@ -229,6 +197,7 @@ server <- function(input, output) {
                 )))
   })
 
+  # ----------- Data: disease -----------
   subset_disease <- reactive({
     df_disease %>%
       dplyr::filter(disease_name == input$disease)
