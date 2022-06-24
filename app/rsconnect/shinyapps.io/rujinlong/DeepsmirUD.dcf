@@ -5,9 +5,9 @@ account: rujinlong
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 6295477
-bundleId: 5971179
+bundleId: 6040977
 url: https://rujinlong.shinyapps.io/DeepsmirUD/
-when: 1654167857.09195
-lastSyncTime: 1654167857.09198
+when: 1656102465.12801
+lastSyncTime: 1656102465.12803
 asMultiple: FALSE
 asStatic: FALSE
