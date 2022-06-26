@@ -104,8 +104,8 @@ navP_Disease <- tabPanel("Drug-cancer association",
                          sidebarLayout(sideP_disease, mainP_disease))
 
 # ============ MAIN UI =============
-navP_DeepsmirUD <- tabPanel("DeepsmirUD", fixedPage(
-  h3(paste0("DeepsmirUD software can be obtained from "), tags$a(href="https://github.com/2003100127/deepsmirud", target="_blank", "Github")),
+navP_DeepsmirUD <- tabPanel("Software", fixedPage(
+  h3("DeepsmirUD software can be obtained from ", tags$a(href="https://github.com/2003100127/deepsmirud", target="_blank", "Github"), "."),
   br(),
   hr(),
   div(
