@@ -6,7 +6,8 @@ upon miRNAs from all relations used in the DeepsmirUD paper. By trawling
 through miRNA-disease data from miRCancer, we also established a
 database of drug–cancer associations to provide potential therapeutics
 based on the SM-miR upregulation and downregulation profiles predicted
-by DeepsmirUD.
+by <a href="https://github.com/2003100127/deepsmirud"
+target="_blank">DeepsmirUD</a>.
 
 # Introduction
 

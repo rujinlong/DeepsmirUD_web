@@ -52,8 +52,8 @@ navP_Doc <- tabPanel("Tutorial", mainP_Doc)
 # =========== TABLE ===========
 sideP_TB <- sidebarPanel(
   uiOutput("data1_sheets"),
-  uiOutput("ds1_col1"),
-  uiOutput("ds1_col4"),
+  selectizeInput('ds1_col1', label= "Filter by cid: small molecule (compound) ID", choices = NULL, selected = NULL),
+  selectizeInput('ds1_col4', label= "Filter by mirBase: miRNA", choices = NULL, selected = NULL),
   width = 3
 )
 
@@ -61,65 +61,85 @@ mainP_TB <- mainPanel(
   tabsetPanel(
     tabPanel("Search all",
              reactableOutput("tbl_data1"),
+             hr(),
+             h4("Score distributions of different models"),
              plotlyOutput("df1_replot"),
+             hr(),
              fluidRow(
-               column(width = 6, plotlyOutput("df1_hist")),
-               column(width=6, plotlyOutput("df1_replot2"))
+               column(width = 4, h4("Correlation of models"), plotOutput("df1_clustermap")),
+               column(width = 8, h4("Histogram of model scores"), plotlyOutput("df1_hist"))
                ),
-             fluidRow(
-               column(width = 8, plotlyOutput("heatmapPlot", height="1100px")),
-               column(width = 4, plotOutput("df1_clustermap"))
-               ),
+             hr(),
+             h4("Score distributions of different models"),
+             plotlyOutput("df1_replot2"),
+             hr(),
+             h4("Heatmap"),
+             plotlyOutput("heatmapPlot", height="900px"),
              ),
-    tabPanel("Search Verse", reactableOutput("tbl_data2")),
+    tabPanel("Search Verse", reactableOutput("tbl_data2"))
   ),
   width = 9
 )
 
-navP_TB <- tabPanel("Regulatory effect", sidebarLayout(sideP_TB, mainP_TB))
+navP_TB <- tabPanel("Regulatory effect",
+                    sidebarLayout(sideP_TB, mainP_TB))
 
 
 # =========== DISEASE ============
 sideP_disease <- sidebarPanel(
   uiOutput("disease"),
+  p("TODO: Description of the table ..."),
   width = 3
 )
 
 mainP_disease <- mainPanel(
   tabsetPanel(
-    tabPanel("Connectivity score", reactableOutput("cmap_ks"), reactableOutput("cmap_zh"),reactableOutput("cmap_g0"),reactableOutput("cmap_g1"),reactableOutput("cmap_g2"),reactableOutput("cmap_xs")),
-    tabPanel("Drug-cancer association heatmap", fluidRow(plotlyOutput("heatmap_d2sm", height="800px"))),
-    tabPanel("Disease", reactableOutput("tbl_disease_cancer"), reactableOutput("tbl_disease_dsu")),
+    tabPanel("Table", h3("Connectivity score"), reactableOutput("cmap_score"), hr(), h3("miRNA profile of DeepsmirUD predictions"), reactableOutput("tbl_disease_dsu"), hr(), h3("miRNA profile of the disease"), reactableOutput("tbl_disease_cancer")),
+    tabPanel("Drug-cancer association heatmap", fluidRow(plotlyOutput("heatmap_d2sm", height="800px")))
   ),
   width = 9
 )
 
-navP_Disease <- tabPanel("Drug-cancer association", sidebarLayout(sideP_disease, mainP_disease))
-
+navP_Disease <- tabPanel("Drug-cancer association",
+                         sidebarLayout(sideP_disease, mainP_disease))
 
 # ============ MAIN UI =============
-# ui <- navbarPage("DeepsmirUD_web", navP_Home, navP_TB, navP_Disease, theme = bs_theme(bootswatch="cerulean"))
-ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, theme = shinytheme("cerulean"))
+navP_DeepsmirUD <- tabPanel("DeepsmirUD", fixedPage(
+  h3(paste0("DeepsmirUD software can be obtained from "), tags$a(href="https://github.com/2003100127/deepsmirud", target="_blank", "Github")),
+  br(),
+  hr(),
+  div(
+    class = "footer",
+    includeHTML("www/footer.html")
+    )
+  )
+)
+
+ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
+                 theme = shinytheme("flatly"))
+                 # position = "fixed-top",
+                 # tags$style("body {padding-top: 70px;}"))
 
 
-# ------------ Server --------
-server <- function(input, output) {
+# =========== Server ===========
+server <- function(input, output, session) {
   # ========== Dynamic UI:  TABLE side ==========
   output$data1_sheets <- renderUI({
-    selectInput("data1_sheets", "Select sheets in data 1", excel_sheets(fpath1))
+    selectInput("data1_sheets", "Select database", excel_sheets(fpath1))
   })
 
-  output$ds1_col1 <- renderUI({
-    selectInput("ds1_col1", "cid",
-                sort(unique(df_data1()$cid)),
-                multiple = TRUE,
-                selectize = T)
+  observeEvent(df_data1(), {
+    updateSelectizeInput(session, "ds1_col1",
+                         choices=sort(unique(df_data1()$cid)),
+                         server=TRUE,
+                         selected=F)
   })
-  output$ds1_col4 <- renderUI({
-    selectInput("ds1_col4", "mirBase",
-                sort(unique(df_data1()$Mirbase)),
-                multiple = TRUE,
-                selectize = T)
+
+  observeEvent(df_data1(), {
+    updateSelectizeInput(session, "ds1_col4",
+                         choices=sort(unique(df_data1()$Mirbase)),
+                         server=TRUE,
+                         selected=F)
   })
 
   # ============ Dynamic UI: DISEASE side =========
@@ -132,6 +152,7 @@ server <- function(input, output) {
     df <- read_excel(fpath1, sheet = input$data1_sheets)
   })
 
+
   # -------------- Data: search Verse ---------
   df_data2 <- reactive({df <- read_excel(fpath2)})
 
@@ -139,21 +160,23 @@ server <- function(input, output) {
   # ----------- Render: search all ---------------
   output$tbl_data1 <- renderReactable({
     df <- df_data1()
-    if (!is.null(input$ds1_col1) & !is.null(input$ds1_col4)) {
-      print("cond1")
-      df <- df %>% dplyr::filter(cid %in% input$ds1_col1, Mirbase %in% input$ds1_col4)
-    } else if (is.null(input$ds1_col1) & !is.null(input$ds1_col4)) {
-      print("cond2")
-      df <- df %>%dplyr::filter(Mirbase %in% input$ds1_col4)
-    } else if (!is.null(input$ds1_col1) & is.null(input$ds1_col4)) {
-      print("cond3")
-      df <- df %>%dplyr::filter(cid %in% input$ds1_col1)
-    }
     if (input$data1_sheets == "Sheet1") {
       reactable(df)
     } else {
-      df %>%
-        mutate(across(where(is.numeric), round, 4)) %>%
+      df_show <- df %>%
+        mutate(across(where(is.numeric), round, 4))
+      if (input$ds1_col1 != "" & input$ds1_col4 != "") {
+        print("cond1")
+        df_show <- df_show %>% dplyr::filter(cid %in% input$ds1_col1, Mirbase %in% input$ds1_col4)
+      } else if (input$ds1_col1 == "" & input$ds1_col4 != "") {
+        print("cond2")
+        df_show <- df_show %>%dplyr::filter(Mirbase %in% input$ds1_col4)
+      } else if (input$ds1_col1 != "" & input$ds1_col4 == "") {
+        print("cond3")
+        df_show <- df_show %>%dplyr::filter(cid %in% input$ds1_col1)
+      }
+      df_show %>%
+        # reactable()
         reactable(searchable = TRUE,
                   sortable = TRUE,
                   filterable = TRUE,
@@ -172,6 +195,7 @@ server <- function(input, output) {
                       }
                     )))
     }
+
   })
 
   # -------------- Render: search Verse --------------
@@ -206,32 +230,54 @@ server <- function(input, output) {
 
   subset_dsu <- reactive({
     df_dsu %>%
-      dplyr::filter(mirna_baseid %in% unique(subset_disease()$mirna_baseid))
+      dplyr::filter(mirna_baseid %in% unique(subset_disease()$mirna_baseid)) %>%
+      mutate(across(where(is.numeric), round, 4))
   })
 
   output$tbl_disease_cancer <- renderReactable({
     subset_disease() %>%
-      dplyr::select(-pubmed_article) %>%
-      distinct() %>%
+      # dplyr::select(-pubmed_article) %>%
+      # distinct() %>%
       reactable(searchable = TRUE,
                 sortable = TRUE,
                 filterable = TRUE,
-                highlight = TRUE)
+                highlight = TRUE,
+                resizable = TRUE,
+                wrap = FALSE)
   })
 
 
   output$tbl_disease_dsu <- renderReactable({
-    subset_dsu() %>%
-      reactable(searchable = TRUE,
-                sortable = TRUE,
-                filterable = TRUE,
-                highlight = TRUE)
+    tbl_sub <- subset_dsu()
+    tbl_parent <- tbl_sub %>%
+      dplyr::select(sm_name, cid) %>%
+      distinct()
+
+    reactable(tbl_parent, filterable = T, details = function(index) {
+      cid_miRNA_profile <- tbl_sub[tbl_sub$sm_name == tbl_parent$sm_name[index],]
+      htmltools::div(style = "padding: 1rem",
+                     reactable(cid_miRNA_profile,
+                               outlined = TRUE,
+                               wrap = F,
+                               resizable = T,
+                               highlight = T,
+                               filterable = T,
+                               sortable = T,
+                               searchable = T)
+      )
+    })
+    # subset_dsu() %>%
+    #   reactable(searchable = TRUE,
+    #             sortable = TRUE,
+    #             filterable = TRUE,
+    #             highlight = TRUE,
+    #             wrap = FALSE)
   })
 
 
   # ================ navP_Disease ============
   # ----------- Tab: Connectivity score ----------
-  output$cmap_ks <- renderReactable({
+  output$cmap_score <- renderReactable({
     df_cmap[[input$disease]] %>%
       rownames_to_column("colnames_new") %>%
       left_join(df_smname_mapping, by = "colnames_new") %>%
@@ -299,7 +345,7 @@ server <- function(input, output) {
     p <- df1() %>%
       mutate(value = log10(value)) %>%
       ggplot(aes(x=value, fill=variable)) +
-      geom_histogram()
+      geom_histogram(binwidth = 1)
     ggplotly(p)
   })
 
@@ -312,7 +358,7 @@ server <- function(input, output) {
   output$df1_replot2 <- renderPlotly({
     p <- df1() %>%
       ggplot(aes(x=a, y=value, size = value, color = variable)) +
-      geom_point()
+      geom_point(alpha=0.3)
     ggplotly(p)
   })
 }
