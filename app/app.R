@@ -18,10 +18,8 @@ fp_cmap <- "data/main/gseaweight1score.rds"
 fp_d2sm_heatmap <- "data/data4heatmap.rds"
 fp_profile <- "data/profiles_deepsmirud.rdata"
 df_disease <- read_excel(fp_disease, sheet = "mircancer")
-df_dsu <- read_excel(fp_disease, sheet = "deepsmirud")
 disease_names <- sort(unique(df_disease$disease_name))
 df_cmap <- readRDS(fp_cmap)
-d2sm_heatmap <- readRDS(fp_d2sm_heatmap)
 load(fp_profile)
 
 # ============ HOME ========
@@ -121,7 +119,6 @@ ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, n
                  # tags$style("body {padding-top: 70px;}"))
 
 
-# =========== Server ===========
 server <- function(input, output, session) {
   # ========== Dynamic UI:  TABLE side ==========
   output$data1_sheets <- renderUI({
@@ -147,17 +144,13 @@ server <- function(input, output, session) {
     selectInput("disease", "Select disease", disease_names)
   })
 
-  # -------------- Data: search all -----------
+  # ========== SEARCH ALL =============
+  # -------------- search all: data -----------
   df_data1 <- reactive({
     df <- read_excel(fpath1, sheet = input$data1_sheets)
   })
 
-
-  # -------------- Data: search Verse ---------
-  df_data2 <- reactive({df <- read_excel(fpath2)})
-
-  # ========== OUTPUT =============
-  # ----------- Render: search all ---------------
+  # ----------- search all: table ----------
   output$tbl_data1 <- renderReactable({
     df <- df_data1()
     if (input$data1_sheets == "Sheet1") {
@@ -195,118 +188,9 @@ server <- function(input, output, session) {
                       }
                     )))
     }
-
   })
 
-  # -------------- Render: search Verse --------------
-  output$tbl_data2 <- renderReactable({
-    df <- df_data2() %>%
-      mutate(across(where(is.numeric), round, 4))
-    reactable(df,
-              searchable = TRUE,
-              sortable = TRUE,
-              wrap = FALSE,
-              resizable = TRUE,
-              filterable = TRUE,
-              highlight = TRUE,
-              columns = list(
-                predicted_type = colDef(
-                  style = function(value) {
-                    if (value == "Upregulation") {
-                      color <- "#008000"
-                    } else if (value == "Downregulation") {
-                      color <- "#e00000"
-                    }
-                    list(color = color, fontWeight = "bold")
-                  }
-                )))
-  })
-
-  # ----------- Data: disease -----------
-  subset_disease <- reactive({
-    df_disease %>%
-      dplyr::filter(disease_name == input$disease)
-  })
-
-  subset_dsu <- reactive({
-    df_dsu %>%
-      dplyr::filter(mirna_baseid %in% unique(subset_disease()$mirna_baseid)) %>%
-      mutate(across(where(is.numeric), round, 4))
-  })
-
-  output$tbl_disease_cancer <- renderReactable({
-    subset_disease() %>%
-      # dplyr::select(-pubmed_article) %>%
-      # distinct() %>%
-      reactable(searchable = TRUE,
-                sortable = TRUE,
-                filterable = TRUE,
-                highlight = TRUE,
-                resizable = TRUE,
-                wrap = FALSE)
-  })
-
-
-  output$tbl_disease_dsu <- renderReactable({
-    tbl_sub <- subset_dsu()
-    tbl_parent <- tbl_sub %>%
-      dplyr::select(sm_name, cid) %>%
-      distinct()
-
-    reactable(tbl_parent, filterable = T, details = function(index) {
-      cid_miRNA_profile <- tbl_sub[tbl_sub$sm_name == tbl_parent$sm_name[index],]
-      htmltools::div(style = "padding: 1rem",
-                     reactable(cid_miRNA_profile,
-                               outlined = TRUE,
-                               wrap = F,
-                               resizable = T,
-                               highlight = T,
-                               filterable = T,
-                               sortable = T,
-                               searchable = T)
-      )
-    })
-    # subset_dsu() %>%
-    #   reactable(searchable = TRUE,
-    #             sortable = TRUE,
-    #             filterable = TRUE,
-    #             highlight = TRUE,
-    #             wrap = FALSE)
-  })
-
-
-  # ================ navP_Disease ============
-  # ----------- Tab: Connectivity score ----------
-  output$cmap_score <- renderReactable({
-    df_cmap[[input$disease]] %>%
-      rownames_to_column("colnames_new") %>%
-      left_join(df_smname_mapping, by = "colnames_new") %>%
-      dplyr::select(-c(colnames_new, pValue)) %>%
-      column_to_rownames("colnames_old") %>%
-      mutate(Score = Score / 2) %>%  # normalize score to [-1,1]
-      mutate(across(where(is.numeric), round, 4)) %>%
-      dplyr::filter(pAdjValue <= 0.05) %>%
-      arrange(Score) %>%
-      rownames_to_column("compound_name") %>%
-      # mutate(baidu=compound_name) %>%
-      reactable(searchable = TRUE,
-                sortable = TRUE,
-                filterable = TRUE,
-                highlight = TRUE,
-                columns = list(
-                  compound_name = colDef(cell = function(value, index) {
-                    url <- sprintf('https://www.google.com/search?q="%s" +%s', input$disease, value)
-                    htmltools::tags$a(href = url, target = "_blank", as.character(value))
-                  })
-                  # baidu = colDef(cell = function(value, index) {
-                  #   url <- sprintf('https://www.baidu.com/s?wd="%s" +%s', input$disease, value)
-                  #   htmltools::tags$a(href = url, target = "_blank", as.character(value))
-                  # })
-                  ))
-  })
-
-
-
+  # ------------ search all: figures ------------
   df4plot <- reactive({
     df_data1() %>%
       dplyr::select(c(AlexNet, BiRNN, RNN, Seq2Seq, CNN, ConvMixer64, DSConv, LSTMCNN, MobileNetV2, ResNet18, ResNet50, SCAResNet18))
@@ -325,10 +209,6 @@ server <- function(input, output, session) {
   # heatmap
   output$heatmapPlot <- renderPlotly({
     df4plot() %>% heatmaply()
-  })
-
-  output$heatmap_d2sm <- renderPlotly({
-    d2sm_heatmap
   })
 
   # df1: replot
@@ -360,6 +240,121 @@ server <- function(input, output, session) {
       ggplot(aes(x=a, y=value, size = value, color = variable)) +
       geom_point(alpha=0.3)
     ggplotly(p)
+  })
+
+  # =========== SEARCH VERSE ==============
+  # ----------- search verse: data --------------
+  df_data2 <- reactive({df <- read_excel(fpath2)})
+
+  # ----------- search verse: table -------------
+  output$tbl_data2 <- renderReactable({
+    df <- df_data2() %>%
+      mutate(across(where(is.numeric), round, 4))
+    reactable(df,
+              searchable = TRUE,
+              sortable = TRUE,
+              wrap = FALSE,
+              resizable = TRUE,
+              filterable = TRUE,
+              highlight = TRUE,
+              columns = list(
+                predicted_type = colDef(
+                  style = function(value) {
+                    if (value == "Upregulation") {
+                      color <- "#008000"
+                    } else if (value == "Downregulation") {
+                      color <- "#e00000"
+                    }
+                    list(color = color, fontWeight = "bold")
+                  }
+                )))
+  })
+
+
+  # ================ DISEASE: navP ============
+  # ----------- disease: data -----------
+  subset_disease <- reactive({
+    df_disease %>%
+      dplyr::filter(disease_name == input$disease)
+  })
+
+  subset_dsu <- reactive({
+    read_excel(fp_disease, sheet = "deepsmirud") %>%
+      dplyr::filter(mirna_baseid %in% unique(subset_disease()$mirna_baseid)) %>%
+      mutate(across(where(is.numeric), round, 4))
+  })
+
+  data_cmap_score <- reactive({
+    df_cmap[[input$disease]] %>%
+      rownames_to_column("colnames_new") %>%
+      left_join(df_smname_mapping, by = "colnames_new") %>%
+      dplyr::select(-c(colnames_new, pValue)) %>%
+      column_to_rownames("colnames_old") %>%
+      mutate(Score = Score / 2) %>%  # normalize score to [-1,1]
+      mutate(across(where(is.numeric), round, 4)) %>%
+      dplyr::filter(pAdjValue <= 0.05) %>%
+      arrange(Score) %>%
+      rownames_to_column("compound_name")
+  })
+
+  # ----------- disease vis: Connectivity score ----------
+  output$cmap_score <- renderReactable({
+    data_cmap_score() %>%
+      # mutate(baidu=compound_name) %>%
+      reactable(searchable = TRUE,
+                sortable = TRUE,
+                filterable = TRUE,
+                highlight = TRUE,
+                columns = list(
+                  compound_name = colDef(cell = function(value, index) {
+                    url <- sprintf('https://www.google.com/search?q="%s" +%s', input$disease, value)
+                    htmltools::tags$a(href = url, target = "_blank", as.character(value))
+                  })
+                  # baidu = colDef(cell = function(value, index) {
+                  #   url <- sprintf('https://www.baidu.com/s?wd="%s" +%s', input$disease, value)
+                  #   htmltools::tags$a(href = url, target = "_blank", as.character(value))
+                  # })
+                  ))
+  })
+
+  output$tbl_disease_dsu <- renderReactable({
+    tbl_sub <- subset_dsu()
+    tbl_parent <- tbl_sub %>%
+      dplyr::select(sm_name, cid) %>%
+      filter(sm_name %in% unique(data_cmap_score()$compound_name)) %>%
+      distinct()
+
+    reactable(tbl_parent, filterable = T, details = function(index) {
+      cid_miRNA_profile <- tbl_sub[tbl_sub$sm_name == tbl_parent$sm_name[index],]
+      htmltools::div(style = "padding: 1rem",
+                     reactable(cid_miRNA_profile,
+                               outlined = TRUE,
+                               wrap = F,
+                               resizable = T,
+                               highlight = T,
+                               filterable = T,
+                               sortable = T,
+                               searchable = T)
+      )
+    })
+  })
+
+  output$tbl_disease_cancer <- renderReactable({
+    subset_disease() %>%
+      # dplyr::select(-pubmed_article) %>%
+      # distinct() %>%
+      reactable(searchable = TRUE,
+                sortable = TRUE,
+                filterable = TRUE,
+                highlight = TRUE,
+                resizable = TRUE,
+                wrap = FALSE)
+  })
+
+
+  # ------------ disease: heatmap --------------
+  output$heatmap_d2sm <- renderPlotly({
+    readRDS(fp_d2sm_heatmap)
   })
 }
 
