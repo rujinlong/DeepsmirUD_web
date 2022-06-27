@@ -351,7 +351,6 @@ server <- function(input, output, session) {
                 wrap = FALSE)
   })
 
-
   # ------------ disease: heatmap --------------
   output$heatmap_d2sm <- renderPlotly({
     readRDS(fp_d2sm_heatmap)
