@@ -50,8 +50,8 @@ navP_Doc <- tabPanel("Tutorial", mainP_Doc)
 # =========== TABLE ===========
 sideP_TB <- sidebarPanel(
   uiOutput("data1_sheets"),
-  selectizeInput('ds1_col1', label= "Filter by cid: small molecule (compound) ID", choices = NULL, selected = NULL),
-  selectizeInput('ds1_col4', label= "Filter by mirBase: miRNA", choices = NULL, selected = NULL),
+  selectizeInput('ds1_col1', label= "Filter by small molecule (compound)", choices = NULL, selected = NULL),
+  selectizeInput('ds1_col4', label= "Filter by miRNA", choices = NULL, selected = NULL),
   width = 3
 )
 
@@ -127,14 +127,14 @@ server <- function(input, output, session) {
 
   observeEvent(df_data1(), {
     updateSelectizeInput(session, "ds1_col1",
-                         choices=sort(unique(df_data1()$cid)),
+                         choices=sort(unique(df_data1()[["Small molecule"]])),
                          server=TRUE,
                          selected=F)
   })
 
   observeEvent(df_data1(), {
     updateSelectizeInput(session, "ds1_col4",
-                         choices=sort(unique(df_data1()$Mirbase)),
+                         choices=sort(unique(df_data1()[["MiRNA"]])),
                          server=TRUE,
                          selected=F)
   })
@@ -160,13 +160,13 @@ server <- function(input, output, session) {
         mutate(across(where(is.numeric), round, 4))
       if (input$ds1_col1 != "" & input$ds1_col4 != "") {
         print("cond1")
-        df_show <- df_show %>% dplyr::filter(cid %in% input$ds1_col1, Mirbase %in% input$ds1_col4)
+        df_show <- df_show %>% dplyr::filter(`Small molecule` %in% input$ds1_col1, MiRNA %in% input$ds1_col4)
       } else if (input$ds1_col1 == "" & input$ds1_col4 != "") {
         print("cond2")
-        df_show <- df_show %>%dplyr::filter(Mirbase %in% input$ds1_col4)
+        df_show <- df_show %>%dplyr::filter(MiRNA %in% input$ds1_col4)
       } else if (input$ds1_col1 != "" & input$ds1_col4 == "") {
         print("cond3")
-        df_show <- df_show %>%dplyr::filter(cid %in% input$ds1_col1)
+        df_show <- df_show %>%dplyr::filter(`Small molecule` %in% input$ds1_col1)
       }
       df_show %>%
         # reactable()
