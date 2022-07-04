@@ -2,11 +2,14 @@ DeepsmirUD-web
 ================
 
 DeepsmirUD-web catalogues predictions of SM-mediated regulatory effects
-upon miRNAs from all relations used in the DeepsmirUD paper. By trawling
-through miRNA-disease data from miRCancer, we also established a
-database of drug–cancer associations to provide potential therapeutics
-based on the SM-miR upregulation and downregulation profiles predicted
-by <a href="https://github.com/2003100127/deepsmirud"
+upon miRNAs from all relations used in the
+<a href="https://www.biorxiv.org/content/10.1101/2022.06.30.498304v2"
+target="_blank">DeepsmirUD paper</a>. By trawling through miRNA-disease
+data from <a href="http://mircancer.ecu.edu/" target="_blank">miRCancer
+database</a>, we also established a database of drug–cancer associations
+to provide potential therapeutics based on the SM-miR upregulation and
+downregulation profiles predicted by
+<a href="https://github.com/2003100127/deepsmirud"
 target="_blank">DeepsmirUD</a>.
 
 # Introduction

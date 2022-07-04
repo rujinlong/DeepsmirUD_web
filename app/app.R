@@ -60,19 +60,22 @@ mainP_TB <- mainPanel(
     tabPanel("Search all",
              reactableOutput("tbl_data1"),
              hr(),
-             h4("Score distributions of different models"),
-             plotlyOutput("df1_replot"),
-             hr(),
-             fluidRow(
-               column(width = 4, h4("Correlation of models"), plotOutput("df1_clustermap")),
-               column(width = 8, h4("Histogram of model scores"), plotlyOutput("df1_hist"))
+             conditionalPanel(condition="input.data1_sheets != 'Sheet1'",
+                              h4("Score distributions of different models"),
+                              plotlyOutput("df1_replot"),
+                              hr(),
+                              fluidRow(
+                                column(width = 4, h4("Correlation of models"), plotOutput("df1_clustermap")),
+                                column(width = 8, h4("Histogram of model scores"), plotlyOutput("df1_hist"))
+                                ),
+                              hr(),
+                              h4("Score distributions of different models"),
+                              plotlyOutput("df1_replot2"),
+                              hr(),
+                              h4("Heatmap"),
+                              plotlyOutput("heatmapPlot", height="900px"),
+                              # ns = NS(NULL)
                ),
-             hr(),
-             h4("Score distributions of different models"),
-             plotlyOutput("df1_replot2"),
-             hr(),
-             h4("Heatmap"),
-             plotlyOutput("heatmapPlot", height="900px"),
              ),
     tabPanel("Search Verse", reactableOutput("tbl_data2"))
   ),
@@ -86,7 +89,7 @@ navP_TB <- tabPanel("Regulatory effect",
 # =========== DISEASE ============
 sideP_disease <- sidebarPanel(
   uiOutput("disease"),
-  p("TODO: Description of the table ..."),
+  p("Select a disease to show it's potential drugs."),
   width = 3
 )
 
@@ -113,7 +116,8 @@ navP_DeepsmirUD <- tabPanel("Software", fixedPage(
   )
 )
 
-ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
+# ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
+ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_TB, navP_Disease, navP_DeepsmirUD,
                  theme = shinytheme("flatly"))
                  # position = "fixed-top",
                  # tags$style("body {padding-top: 70px;}"))
@@ -196,6 +200,7 @@ server <- function(input, output, session) {
       dplyr::select(c(AlexNet, BiRNN, RNN, Seq2Seq, CNN, ConvMixer64, DSConv, LSTMCNN, MobileNetV2, ResNet18, ResNet50, SCAResNet18))
     # save(df, file = "~/df.Rdata")
   })
+
 
   df1 <- reactive({
     df <- df4plot()
