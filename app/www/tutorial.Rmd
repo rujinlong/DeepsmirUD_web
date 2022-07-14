@@ -2,21 +2,41 @@
 title: "Tutorial"
 output:
   github_document
+always_allow_html: true
 ---
 
+```{r include=FALSE}
+library("vembedr")
+```
 
-## Paragraph one
+## Novel regulatory effects
 
-Tutorial 1
+In this tutorial, we introduce and explain the regulatory effects predicted by DeepsmirUD and how users can use these data.
 
-## Paragraph two
+```{r echo=FALSE}
+embed_youtube("OV5iSzzCkyY ") %>% 
+  use_align("center") %>% 
+  use_bs_responsive()
+```
 
-Tutorial 2
+## Drug-cancer association
 
-### Sub paragraph 2.1
+In this tutorial, we give the usage of the drug-cancer associations inferred by means of DeepsmirUD and a disease-related database.
 
-Type something...
+```{r echo=FALSE}
+embed_youtube("NybkuFPIB7I ") %>% 
+  use_align("center") %>% 
+  use_bs_responsive()
+```
 
-## Paragraph three
+## Cancer-drug heatmap
 
-Tutorial 3
+In this tutorial, we show a cancer-drug heatmap to broaden the knowledge of the drug potential for a particular cancer disease.
+
+```{r echo=FALSE}
+embed_youtube("re4IpSYLWAQ ") %>% 
+  use_align("center") %>% 
+  use_bs_responsive()
+```
+
+**For more details, please check out the [paper](https://www.biorxiv.org/content/10.1101/2022.06.30.498304v2){target="_blank"} and [code](https://github.com/2003100127/deepsmirud){target="_blank"}.**

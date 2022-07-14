@@ -14,7 +14,7 @@ library(markdown)
 fpath1 <- "data/data1.xlsx"
 fpath2 <- "data/data2.xlsx"
 fp_disease <- "data/disease.xlsx"
-fp_cmap <- "data/main/gseaweight1score.rds"
+fp_cmap <- "data/main/GSEAweight1Score.rds"
 fp_d2sm_heatmap <- "data/data4heatmap.rds"
 fp_profile <- "data/profiles_deepsmirud.rdata"
 df_disease <- read_excel(fp_disease, sheet = "mircancer")
@@ -117,7 +117,7 @@ navP_DeepsmirUD <- tabPanel("Software", fixedPage(
 )
 
 # ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
-ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_TB, navP_Disease, navP_DeepsmirUD,
+ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
                  theme = shinytheme("flatly"))
                  # position = "fixed-top",
                  # tags$style("body {padding-top: 70px;}"))
