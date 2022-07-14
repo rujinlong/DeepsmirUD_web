@@ -57,7 +57,7 @@ sideP_TB <- sidebarPanel(
 
 mainP_TB <- mainPanel(
   tabsetPanel(
-    tabPanel("Search all",
+    tabPanel("Search Psmir",
              reactableOutput("tbl_data1"),
              hr(),
              conditionalPanel(condition="input.data1_sheets != 'Sheet1'",
@@ -82,7 +82,7 @@ mainP_TB <- mainPanel(
   width = 9
 )
 
-navP_TB <- tabPanel("Regulatory effect",
+navP_TB <- tabPanel("Novel regulatory effect",
                     sidebarLayout(sideP_TB, mainP_TB))
 
 
