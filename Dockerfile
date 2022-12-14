@@ -1,6 +1,26 @@
-FROM --platform=linux/amd64 rocker/tidyverse:4.2.0
+FROM rocker/shiny-verse:4.2
 
 LABEL author="Jinlong Ru"
 
-RUN R -e 'install.packages(c("remotes", "argparser"), repos="https://cloud.r-project.org/")'
-RUN R -e 'remotes::install_github("Jasonlinchina/RCSM")'
+# copy the app to the image
+COPY . /srv/shiny-server/
+
+WORKDIR /srv/shiny-server/
+
+RUN apt-get update && apt-get install -y \
+    libcurl4-gnutls-dev \
+    libssl-dev \
+    libgsl-dev \
+    libclang-dev
+
+# install R packages using renv
+RUN R -e "install.packages('renv')"
+RUN R -e "install.packages('Matrix', version='1.5-1')"
+RUN R -e "renv::install()"
+
+
+# select port
+EXPOSE 3838
+
+# run app
+CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app', host = '0.0.0.0', port = 3838)"]
