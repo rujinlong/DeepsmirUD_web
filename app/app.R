@@ -9,6 +9,7 @@ library(heatmaply)
 library(corrplot)
 library(knitr)
 library(markdown)
+library(shinycssloaders)
 
 # ========== DATA =========
 fpath1 <- "data/data1.xlsx"
@@ -58,26 +59,26 @@ sideP_TB <- sidebarPanel(
 mainP_TB <- mainPanel(
   tabsetPanel(
     tabPanel("Search Psmir",
-             reactableOutput("tbl_data1"),
+             withSpinner(reactableOutput("tbl_data1")),
              hr(),
              conditionalPanel(condition="input.data1_sheets != 'Sheet1'",
                               h4("Score distributions of different models"),
-                              plotlyOutput("df1_replot"),
+                              withSpinner(plotlyOutput("df1_replot")),
                               hr(),
                               fluidRow(
-                                column(width = 4, h4("Correlation of models"), plotOutput("df1_clustermap")),
-                                column(width = 8, h4("Histogram of model scores"), plotlyOutput("df1_hist"))
+                                column(width = 4, h4("Correlation of models"), withSpinner(plotOutput("df1_clustermap"))),
+                                column(width = 8, h4("Histogram of model scores"), withSpinner(plotlyOutput("df1_hist")))
                                 ),
                               hr(),
                               h4("Score distributions of different models"),
-                              plotlyOutput("df1_replot2"),
+                              withSpinner(plotlyOutput("df1_replot2")),
                               hr(),
                               h4("Heatmap"),
-                              plotlyOutput("heatmapPlot", height="900px"),
+                              withSpinner(plotlyOutput("heatmapPlot", height="900px")),
                               # ns = NS(NULL)
                ),
              ),
-    tabPanel("Search Verse", reactableOutput("tbl_data2"))
+    tabPanel("Search Verse", withSpinner(reactableOutput("tbl_data2")))
   ),
   width = 9
 )
@@ -88,15 +89,15 @@ navP_TB <- tabPanel("Novel regulatory effect",
 
 # =========== DISEASE ============
 sideP_disease <- sidebarPanel(
-  uiOutput("disease"),
+  withSpinner(uiOutput("disease")),
   p("Select a disease to show it's potential drugs."),
   width = 3
 )
 
 mainP_disease <- mainPanel(
   tabsetPanel(
-    tabPanel("Table", h3("Connectivity score"), reactableOutput("cmap_score"), hr(), h3("miRNA profile of DeepsmirUD predictions"), reactableOutput("tbl_disease_dsu"), hr(), h3("miRNA profile of the disease"), reactableOutput("tbl_disease_cancer")),
-    tabPanel("Drug-cancer association heatmap", fluidRow(plotlyOutput("heatmap_d2sm", height="800px")))
+    tabPanel("Table", h3("Connectivity score"), withSpinner(reactableOutput("cmap_score")), hr(), h3("miRNA profile of DeepsmirUD predictions"), withSpinner(reactableOutput("tbl_disease_dsu")), hr(), h3("miRNA profile of the disease"), withSpinner(reactableOutput("tbl_disease_cancer"))),
+    tabPanel("Drug-cancer association heatmap", fluidRow(withSpinner(plotlyOutput("heatmap_d2sm", height="800px"))))
   ),
   width = 9
 )
