@@ -20,12 +20,16 @@ docker run --rm jinlongru/deepsmirud_web:latest
 
 ### Run from GitHub
 
+You need to manually install dependent packages in `renv.lock` file before running the following command.
+
 ``` sh
 # You need to install dependent packages manually
-R -e "shiny::runGitHub('DeepsmirUD_web/app', 'rujinlong')"
+R -e "shiny::runGitHub('DeepsmirUD_web/app', 'rujinlong', subdir = 'app')"
 ```
 
 ### Run a cloned version
+
+You need to manually install dependent packages in `renv.lock` file before running the following command.
 
 ``` sh
 git clone https://github.com/rujinlong/DeepsmirUD_web.git
