@@ -3,7 +3,7 @@ FROM rocker/shiny-verse:4.2
 LABEL author="Jinlong Ru"
 
 # copy the app to the image
-COPY app/* /srv/shiny-server/
+ADD app /srv/shiny-server/
 COPY renv* /srv/shiny-server/
 
 WORKDIR /srv/shiny-server/
