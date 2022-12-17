@@ -3,7 +3,7 @@ FROM rocker/shiny-verse:4.2
 LABEL author="Jinlong Ru"
 
 # copy the app to the image
-COPY . /srv/shiny-server/
+COPY app/* /srv/shiny-server/
 
 WORKDIR /srv/shiny-server/
 
@@ -23,4 +23,4 @@ RUN R -e "renv::install()"
 EXPOSE 3838
 
 # run app
-CMD ["R", "-e", "shiny::runApp('/srv/shiny-server/app', host = '0.0.0.0', port = 3838)"]
+CMD ["R", "-e", "shiny::runApp('/srv/shiny-server', host = '0.0.0.0', port = 3838)"]

@@ -1,0 +1,125 @@
+---
+title: "02-merge_data"
+date: "Compiled at `r format(Sys.time(), '%Y-%m-%d %H:%M:%S', tz = 'UTC')` UTC"
+output: github_document
+params:
+  name: "02-merge_data" # change if you rename file
+---
+
+```{r here, message=FALSE}
+here::i_am(paste0(params$name, ".Rmd"), uuid = "52a5df8e-e152-438e-ad43-1c23aab91a3c")
+```
+
+The purpose of this document is to merge multiple data for app.
+
+```{r packages}
+library("conflicted")
+library(tidyverse)
+library(plotly)
+prj_path <- normalizePath("..")
+```
+
+```{r directories}
+# create or *empty* the target directory, used to write this file's data: 
+projthis::proj_create_dir_target(params$name, clean = TRUE)
+
+# function to get path to target directory: path_target("sample.csv")
+path_target <- projthis::proj_path_target(params$name)
+
+# function to get path to previous data: path_source("00-import", "sample.csv")
+path_source <- projthis::proj_path_source(params$name)
+```
+
+## Tasks
+
+```{r}
+fpath1 <- here::here(prj_path, "data/data1.xlsx")
+fpath2 <- here::here(prj_path, "data/data2.xlsx")
+fp_disease <- here::here(prj_path, "data/disease.xlsx")
+fp_cmap <- here::here(prj_path, "data/main/GSEAweight1Score.rds")
+fp_d2sm_heatmap <- here::here(prj_path, "data/d4heatmap.rds")
+
+
+fp_profile <- here::here(prj_path, "data/profiles_deepsmirud.rdata")
+df_disease <- read_excel(fp_disease, sheet = "mircancer")
+df_deepsmirud <- read_excel(fp_disease, sheet = "deepsmirud")
+disease_names <- sort(unique(df_disease$disease_name))
+df_cmap <- readRDS(fp_cmap)
+load(fp_profile)
+dbs <- excel_sheets(fpath1)
+dbs <- dbs[dbs!="Sheet1"]
+# df_verse <- read_excel(fpath2)
+
+dsud <- list(df_cmap = df_cmap,
+             df_verse = df_verse,
+             df_disease = df_disease,
+             df_deepsmirud = df_deepsmirud,
+             df_smname_mapping = df_smname_mapping,
+             profile_d2m = profile_d2m,
+             profile_s2m = profile_s2m,
+             disease_names = disease_names,
+             db_overview = read_excel(fpath1, sheet = "Sheet1"),
+             dbs = dbs)
+
+for (db in dbs) {
+  print(db)
+  dfraw <- read_excel(fpath1, sheet = db)
+  if (db == "0.05_op") {
+    df <- head(dfraw, 500)
+  } else {
+    df <- dfraw
+  }
+  df4plot <- df %>%
+      dplyr::select(c(AlexNet, BiRNN, RNN, Seq2Seq, CNN, ConvMixer64, DSConv, LSTMCNN, MobileNetV2, ResNet18, ResNet50, SCAResNet18))
+  df1 <- df4plot %>%
+      pivot_longer(names_to = "variable",
+                   values_to = "value",
+                   cols = colnames(.)) %>%
+      mutate(a = sort(rep(1:nrow(df4plot), ncol(df4plot))) - 1)
+
+  df1_replot <- ggplot(df1, aes(x=a, y=value, color=variable)) +
+      geom_line() +
+      facet_wrap("variable")
+  # df1_replot <- plot_ly(df1, x = ~a, y = ~value, color = ~variable, type = 'scatter', mode = 'lines', facet_col = ~variable)
+
+  df1_hist <- df1 %>%
+      mutate(value = log10(value)) %>%
+      ggplot(aes(x=value, fill=variable)) +
+      geom_histogram(binwidth = 1)
+  # df2 <- df1 %>% mutate(value = log10(value))
+  # df1_hist <- plot_ly(df2, x = ~value, color = ~variable, type = "histogram", histnorm = "probability density", nbinsx = 100)
+  
+  df1_replot2 <- ggplot(df1, aes(x=a, y=value, size = value, color = variable)) +
+      geom_point(alpha=0.3)
+  # convert df1_replot2 to plotly
+  # df1_replot2 <- plot_ly(df1, x = ~a, y = ~value, color = ~variable, size = ~value, mode = "markers", alpha = 0.3, type = "scattergl")
+  
+
+  dsud[[db]][["df4plot"]] <- df4plot
+  dsud[[db]][["df1"]] <- df1
+  dsud[[db]][["heatmapPlot"]] <- heatmaply(df4plot)
+  dsud[[db]][["df1_replot"]] <- ggplotly(df1_replot)
+  dsud[[db]][["df1_hist"]] <- ggplotly(df1_hist)
+  dsud[[db]][["df1_clustermap"]] <- corrplot(cor(df4plot))
+  dsud[[db]][["df1_replot2"]] <- ggplotly(df1_replot2)
+  dsud[[db]][["df"]] <- dfraw
+}
+
+dpath_dsud <- here::here(prj_path, "data/dsud_simple.rds")
+write_rds(dsud, file = dpath_dsud, compress = "xz")
+# dsud2 <- read_rds(dpath_dsud)
+# 
+# plot_ly(df1, x = ~a, y = ~value, color = ~variable, size = ~value, alpha = 0.7, mode = "markers", type = "scattergl")
+#         layout(xaxis = list(title = "Sample"), yaxis = list(title = "Expression"))
+#         
+# dsud[["appv_0.01_non_op_down"]][["df1_replot2"]]
+```
+
+
+## Files written
+
+These files have been written to the target directory, ```r paste0("data/", params$name)```:
+
+```{r list-files-target}
+projthis::proj_dir_info(path_target())
+```
