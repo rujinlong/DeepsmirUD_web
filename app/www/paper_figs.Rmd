@@ -1,5 +1,5 @@
 ---
-title: "Highh-resolution of figures in the paper"
+title: "High-resolution figures in the paper"
 output:
   github_document
 ---

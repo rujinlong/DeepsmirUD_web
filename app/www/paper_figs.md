@@ -1,4 +1,4 @@
-Highh-resolution of figures in the paper
+High-resolution figures in the paper
 ================
 
 <center>
