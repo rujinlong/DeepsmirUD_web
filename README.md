@@ -15,7 +15,7 @@ could use one of following approaches,
 ### Using Docker image (recommended)
 
 ``` sh
-docker run --rm jinlongru/deepsmirud_web:latest
+docker run --rm jinlongru/deepsmirud_web
 ```
 
 ### Run from GitHub
