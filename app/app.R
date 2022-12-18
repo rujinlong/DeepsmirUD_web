@@ -26,6 +26,18 @@ main_Home <- fixedPage(
 navP_Home <- tabPanel("Home", main_Home)
 
 
+# ============ HOME ========
+main_Fig <- fixedPage(
+  withMathJax(includeMarkdown("www/paper_figs.md")),
+  hr(),
+  div(
+    class = "footer",
+    includeHTML("www/footer.html")
+  )
+)
+navP_Fig <- tabPanel("Figures", main_Fig)
+
+
 # =========== TUTORIAL ===========
 mainP_Doc <- fixedPage(
   withMathJax(includeMarkdown("www/tutorial.md")),
@@ -149,7 +161,7 @@ navP_DeepsmirUD <- tabPanel("Software", fixedPage(
 )
 
 # ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
-ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_DeepsmirUD,
+ui <- navbarPage("DeepsmirUD-web", navP_Home, navP_Doc, navP_TB, navP_Disease, navP_Fig, navP_DeepsmirUD,
                  theme = shinytheme("flatly"))
                  # position = "fixed-top",
                  # tags$style("body {padding-top: 70px;}"))

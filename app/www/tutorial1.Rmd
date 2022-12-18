@@ -13,7 +13,7 @@ Through the "Novel regulatory effect" tab, users are directed to access the info
 
 It provides a series of databases, which are made by using different p-values to filter data of the Psmir database. The databases are 0.05_op, 0.05_non_op, appv_0.01_op_up, appv_0.01_op_down, appv_0.01_non_op_up, appv_0.01_non_op_down, unappv_0.01_op_up, unappv_0.01_op_down, unappv_0.01_non_op_up, and unappv_0.01_non_op_down. appv is for FDA-approved. unappv is for FDA-unapproved. op is for overlapped, representing a miRNA or a small molecule in these small molecule-miRNA pairs are overlapped with miRNAs or small molecules in the DeepsmirUD training dataset. After the ‘0.05_non_op’ database is selected, tables and plots are loaded as in **Figure 1**.
 
-<center>![Figure 1. Databases of predicted regulatory effects of the Psmir pairs](nrFigure1.png){width=95%}</center></center>
+<center>![Figure 1. Databases of predicted regulatory effects of the Psmir pairs](nrFigure1.png){width=95%}</center>
 
 </br>
 
