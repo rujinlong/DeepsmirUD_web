@@ -1,0 +1,24 @@
+---
+title: "Heatmap of drug-cancer associations"
+output:
+  github_document
+always_allow_html: true
+---
+
+The heatmap is accessible through choosing ‘Drug-cancer ssociation heatmap’ under navigation mark ‘Drug-cancer association’. It records the connectivity scores of 107x1343 combinations of small molecules and cancer diseases. High drug potential is in blue and low drug potential is in red.
+
+<center>![Figure 1. Heatmap of drug-cancer associations](hmFigure1.png){width=95%}</center>
+
+</br>
+
+Users can hover the cursor over any place in the heatmap and will see the connectivity score of a drug to treat a certain disease. For example, **Figure 1** shows a connectivity score of -1 of anabasine to treat lung cancer.
+
+<center>![Figure 2. Select a certain area.](hmFigure2.png){width=95%}</center>
+
+</br>
+
+Users can select a certain area (**Figure 3**) in blue to look into details since this area stores high-confidence drugs for disease treatment. The area will be enlarged to ease the further check (**Figure 3**).
+
+<center>![Figure 3. Zoom-in of a certain area.](hmFigure3.png){width=95%}</center>
+
+</br>

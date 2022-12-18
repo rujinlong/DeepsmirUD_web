@@ -1,6 +1,9 @@
+library(here)
 
+prj_path <- here()
+dpath <- here(prj_path, "data")
 load(here(prj_path, "data/row_col_order.Rdata"))
-cmap_g1 <- readRDS(here(dpath, "GSEAweight1Score.rds"))
+cmap_g1 <- readRDS(here(dpath, "main/GSEAweight1Score.rds"))
 cmap_rst <- cmap_g1
 
 ftitle <- "GSEAweight1"
