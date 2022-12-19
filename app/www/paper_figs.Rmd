@@ -1,0 +1,18 @@
+---
+title: "High-resolution figures in the paper"
+output:
+  github_document
+---
+
+<center>![Figure 6f (left)](pfig6f_left.svg){width=99%}</center>
+
+</br>
+
+
+<center>![Figure 6f (right)](pfig6f_right.svg){width=99%}</center>
+
+</br>
+
+<center>![Figure 6g](pfig6g.svg){width=99%}</center>
+
+</br>
