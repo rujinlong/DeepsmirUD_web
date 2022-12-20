@@ -196,6 +196,8 @@ profile_s2m_raw <- df_deepsmirud_human_nr %>%
 # --------- normalize and format SM-miRNA profile matrix -----------
 profile_s2m <- profile_s2m_raw - deepsmirud_threshold
 profile_s2m[is.na(profile_s2m)] <- 0
+# row * col = miRNA * small_molecule (SM)
+# Rank order of miRNA in each SM was ordered in the RCSM code: https://github.com/Jasonlinchina/RCSM/blob/8f1d614ffd400225566e93f16d95c824e8a1606b/R/KS.R#L42
 
 # Change SM name so that they are distinct and satisfy DF column name requirement.
 colnames_old <- colnames(profile_s2m)
