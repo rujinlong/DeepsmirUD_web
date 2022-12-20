@@ -194,6 +194,7 @@ profile_s2m_raw <- df_deepsmirud_human_nr %>%
 
 
 # --------- normalize and format SM-miRNA profile matrix -----------
+# Because cmap use log-fold change information, we need to convert the raw DeepsmirUD to [negative, positive] by minus a threshold (default: 0.5)
 profile_s2m <- profile_s2m_raw - deepsmirud_threshold
 profile_s2m[is.na(profile_s2m)] <- 0
 # row * col = miRNA * small_molecule (SM)
