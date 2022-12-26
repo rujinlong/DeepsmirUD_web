@@ -17,8 +17,9 @@ unappv_0.01_op_down, unappv_0.01_non_op_up, and unappv_0.01_non_op_down.
 appv is for FDA-approved. unappv is for FDA-unapproved. op is for
 overlapped, representing a miRNA or a small molecule in these small
 molecule-miRNA pairs are overlapped with miRNAs or small molecules in
-the DeepsmirUD training dataset. After the ‘0.05_non_op’ database is
-selected, tables and plots are loaded as in **Figure 1**.
+the DeepsmirUD training dataset. The loading page of the Psmir databases
+is shown in **Figure 1**. After the ‘0.05_non_op’ database is selected,
+tables and plots are loaded as in **Figures 2-4**.
 
 <center>
 
@@ -29,7 +30,6 @@ alt="Figure 1. Databases of predicted regulatory effects of the Psmir pairs" />
 regulatory effects of the Psmir pairs</figcaption>
 </figure>
 
-</center>
 </center>
 
 </br>
@@ -45,7 +45,12 @@ data</figcaption>
 
 </center>
 
-</br>
+**Figure 2** shows the tables and plots after page loading. The tables
+provide small molecule-miRNA pair information, their predicted
+probabilities of regulatory effects and labels of down- or
+up-regulation. For plots, we provide the matrix of correlation between
+models, histogram, distribution, and heatmap (**Figure 3** and **Figure
+4**). The plots interactively change with data in the tables.
 
 <center>
 
@@ -77,32 +82,50 @@ alt="Figure 4. Heatmap plot" />
 #### (1). by small molecules
 
 In a certain database, all small molecules are listed at dropdown
-‘Filter by small molecule (compound)’ (**Figure 5**).
+‘Filter by small molecule (compound)’ (**Figure 5**). If you do not know
+which small molecules should be of your interest, you can follow what is
+shown in **Figure 5** for filtering small molecule-miRNA pairs. If you
+have an idea of which small molecule should be used, you can filter
+small molecule-miRNA pairs according to **Figure 6**.
 
 <center>
 
 <figure>
 <img src="nrFigure5.png" style="width:95.0%"
-alt="Figure 5. Select small molecule-miRNA pairs by applying a small molecule filter ‘vorinostat’" />
+alt="Figure 5. Select small molecule-miRNA pairs by applying a small molecule filter ‘maprotiline’ and ‘sanguinarine’" />
 <figcaption aria-hidden="true">Figure 5. Select small molecule-miRNA
-pairs by applying a small molecule filter ‘vorinostat’</figcaption>
+pairs by applying a small molecule filter ‘maprotiline’ and
+‘sanguinarine’</figcaption>
 </figure>
 
 </center>
 
 </br>
 
-If we drag the table scroll bar rightmost, it shows that miR-106b is
-upregulated by vorinostat and miR-1 is downregulated by vorinostat
-(**Figure 6**).
-
 <center>
 
 <figure>
 <img src="nrFigure6.png" style="width:95.0%"
-alt="Figure 6. Regulation types of vorinostat-miRNA pairs" />
-<figcaption aria-hidden="true">Figure 6. Regulation types of
-vorinostat-miRNA pairs</figcaption>
+alt="Figure 6. Select small molecule-miRNA pairs by typing in a small molecule ‘vorinostat’." />
+<figcaption aria-hidden="true">Figure 6. Select small molecule-miRNA
+pairs by typing in a small molecule ‘vorinostat’.</figcaption>
+</figure>
+
+</center>
+
+</br>
+
+If we drag the table scroll bar rightmost, it shows that miR-433 is
+upregulated by vorinostat and miR-448 is downregulated by vorinostat
+(**Figure 7**).
+
+<center>
+
+<figure>
+<img src="nrFigure7.png" style="width:95.0%"
+alt="Figure 7. Regulation types of vorinostat-miRNA pairs." />
+<figcaption aria-hidden="true">Figure 7. Regulation types of
+vorinostat-miRNA pairs.</figcaption>
 </figure>
 
 </center>
@@ -112,46 +135,66 @@ vorinostat-miRNA pairs</figcaption>
 #### (2). by miRNAs
 
 Similarly, we can select one of the miRNAs in the selected database to
-filter small molecule-miRNA pairs. There are 259 pairs left after a
-miR-7 filter is applied (**Figure 7** and **Figure 8**).
-
-<center>
-
-<figure>
-<img src="nrFigure7.png" style="width:95.0%"
-alt="Figure 7. Select small molecule-miRNA pairs by applying a miRNA filter." />
-<figcaption aria-hidden="true">Figure 7. Select small molecule-miRNA
-pairs by applying a miRNA filter.</figcaption>
-</figure>
-
-</center>
-
-</br>
+filter small molecule-miRNA pairs. There are 206 pairs left after a
+miR-380 filter is applied (**Figure 8**). Similar to filtering pairs by
+small molecules, if you have an idea of which miRNA should be used in
+your case, you can type in a miRNA, for example, miR-433 (**Figure 9**).
 
 <center>
 
 <figure>
 <img src="nrFigure8.png" style="width:95.0%"
-alt="Figure 8. Regulation types of small molecule-miR-7 pairs." />
-<figcaption aria-hidden="true">Figure 8. Regulation types of small
-molecule-miR-7 pairs.</figcaption>
+alt="Figure 8. Select small molecule-miRNA pairs by applying a small molecule filter ‘miR-380’." />
+<figcaption aria-hidden="true">Figure 8. Select small molecule-miRNA
+pairs by applying a small molecule filter ‘miR-380’.</figcaption>
 </figure>
 
 </center>
 
 </br>
 
-#### (3). by multiple conditions
-
-Deepsmir-Web also allows users to screen the regulation pairs with
-multiple conditions (**Figure 9**).
-
 <center>
 
 <figure>
 <img src="nrFigure9.png" style="width:95.0%"
-alt="Figure 9. Small molecule-miRNA pairs filtered by multiple conditions." />
-<figcaption aria-hidden="true">Figure 9. Small molecule-miRNA pairs
+alt="Figure 9. Select small molecule-miRNA pairs by typing in a miRNA ‘miR-433’." />
+<figcaption aria-hidden="true">Figure 9. Select small molecule-miRNA
+pairs by typing in a miRNA ‘miR-433’.</figcaption>
+</figure>
+
+</center>
+
+</br>
+
+<center>
+
+<figure>
+<img src="nrFigure10.png" style="width:95.0%"
+alt="Figure 10. Figure 10. Regulation types of small molecule-miR-7 pairs." />
+<figcaption aria-hidden="true">Figure 10. Figure 10. Regulation types of
+small molecule-miR-7 pairs.</figcaption>
+</figure>
+
+</center>
+
+</br>
+
+If we drag the table scroll bar rightmost, we can see the predicted
+down-regulation and up-regulation types of small molecule-miR-448 pairs
+(**Figure 10**).
+
+#### (3). by multiple conditions
+
+Deepsmir-Web also allows users to screen the regulation pairs with
+multiple conditions, for example, miR-433, FDA-approved, and P-value
+(**Figure 11**).
+
+<center>
+
+<figure>
+<img src="nrFigure11.png" style="width:95.0%"
+alt="Figure 11. Small molecule-miRNA pairs filtered by multiple conditions." />
+<figcaption aria-hidden="true">Figure 11. Small molecule-miRNA pairs
 filtered by multiple conditions.</figcaption>
 </figure>
 
@@ -162,14 +205,14 @@ filtered by multiple conditions.</figcaption>
 ## 2. Curated small molecule-miRNA pairs from Verse
 
 Similarly, for getting the regulatory effects of the Verse pairs users
-can apply as the same precedures as in Psmir.
+can apply as the same procedures as in Psmir (**Figure 12**).
 
 <center>
 
 <figure>
-<img src="nrFigure10.png" style="width:95.0%"
-alt="Figure 10. Regulatory effects of small molecule pairs curated from Verse." />
-<figcaption aria-hidden="true">Figure 10. Regulatory effects of small
+<img src="nrFigure12.png" style="width:95.0%"
+alt="Figure 12. Regulatory effects of small molecule pairs curated from Verse." />
+<figcaption aria-hidden="true">Figure 12. Regulatory effects of small
 molecule pairs curated from Verse.</figcaption>
 </figure>
 
