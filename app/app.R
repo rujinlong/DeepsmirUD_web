@@ -85,7 +85,9 @@ navP_Doc <- navbarMenu("Tutorial",
 
 # =========== TABLE ===========
 sideP_TB <- sidebarPanel(
-  radioButtons("db", "Select database", dsud$dbs, selected = "unappv_0.01_non_op_down"),
+  selectizeInput("db", "Select database", dsud$dbs, selected = "unappv_0.01_non_op_down"),
+  selectizeInput('ds1_col1', label= "Filter by small molecule (compound)", choices = NULL, selected = NULL, multiple=TRUE, options = list(placeholder = 'select multiple small molecules')),
+  selectizeInput('ds1_col4', label= "Filter by miRNA", choices = NULL, selected = NULL, multiple=TRUE, options = list(placeholder = 'select multiple miRNAs')),
   width = 3
 )
 
@@ -174,18 +176,45 @@ server <- function(input, output, session) {
     reactable(dsud[["db_overview"]])
   })
 
-  df_data1 <- reactive({
+  df_psmir <- reactive({
     dsud[[input$db]][["df"]]
+  })
+
+
+  observeEvent(df_psmir(), {
+    updateSelectizeInput(session, "ds1_col1",
+                         choices=sort(unique(df_psmir()[["Small molecule"]])),
+                         server=T,
+                         selected=F)
+  })
+
+  observeEvent(df_psmir(), {
+    updateSelectizeInput(session, "ds1_col4",
+                         choices=sort(unique(df_psmir()[["MiRNA"]])),
+                         server=T,
+                         selected=F)
   })
 
   # ----------- search all: table ----------
   output$tbl_data1 <- renderReactable({
-    df <- df_data1()
+    df <- df_psmir()
     if (input$db == "Sheet1") {
       reactable(df)
     } else {
       df_show <- df %>%
-        mutate(across(where(is.numeric), round, 4)) %>%
+        mutate(across(where(is.numeric), round, 4))
+      if (length(input$ds1_col1)>0 & length(input$ds1_col4)>0) {
+        # print("cond1")
+        df_show <- df_show %>% dplyr::filter(`Small molecule` %in% input$ds1_col1, MiRNA %in% input$ds1_col4)
+      } else if (length(input$ds1_col1)>0 & length(input$ds1_col4)==0) {
+        # print("cond2")
+        df_show <- df_show %>%dplyr::filter(`Small molecule` %in% input$ds1_col1)
+      } else if (length(input$ds1_col1)==0 & length(input$ds1_col4)>0) {
+        # print("cond3")
+        # print(input$ds1_col4)
+        df_show <- df_show %>%dplyr::filter(MiRNA %in% input$ds1_col4)
+      }
+      df_show %>%
         reactable(searchable = TRUE,
                   defaultPageSize = 10,
                   sortable = TRUE,
@@ -205,8 +234,7 @@ server <- function(input, output, session) {
                       }
                     )))
     }
-  }) %>%
-    bindCache(input$db)
+  })
 
   # ------------ search all: figures ------------
   df4plot <- reactive({
