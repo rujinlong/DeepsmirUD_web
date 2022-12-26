@@ -1,4 +1,3 @@
-
 # DeepsmirUD_web
 
 <!-- badges: start -->
@@ -12,7 +11,7 @@ Due to the computation resource limitation of the cloud service, it is
 highly recommened to run DeepsmirUD_web on your local computer. You
 could use one of following approaches,
 
-### Using Docker image (recommended)
+### Using Docker (recommended)
 
 ``` sh
 docker run --rm jinlongru/deepsmirud_web
@@ -28,7 +27,6 @@ Then open your browser and visit `http://localhost:3838/` to use the DeepsmirUD 
 You need to manually install dependent packages in `renv.lock` file before running the following command.
 
 ``` sh
-# You need to install dependent packages manually
 R -e "shiny::runGitHub('DeepsmirUD_web/app', 'rujinlong', subdir = 'app')"
 ```
 
@@ -51,5 +49,5 @@ Please note that the online version is not stable and may not work properly.
 
 If you use DeepsmirUD in your research, please cite the following paper:
 
-> Sun, Jianfeng, Jinlong Ru, Zihao Chen, Fei Qi, Lorenzo Ramos-Mucci, Suyuan Chen, Adam P. Cribbs, Li Deng, and Xia Wang. "DeepsmirUD: Precise prediction of regulatory effects on miRNA expression mediated by small molecular compounds using competing deep learning frameworks." bioRxiv (2022).
+> Jianfeng Sun, Jinlong Ru, Zihao Chen, Fei Qi, Lorenzo Ramos-Mucci, Suyuan Chen, Adam P. Cribbs, Li Deng, and Xia Wang. "DeepsmirUD: Precise prediction of regulatory effects on miRNA expression mediated by small molecular compounds using competing deep learning frameworks." bioRxiv (2022).
 
