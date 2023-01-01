@@ -397,4 +397,4 @@ server <- function(input, output, session) {
     bindCache(fp_d2sm_heatmap)
 }
 
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = server, options = list(launch.browser = TRUE))
