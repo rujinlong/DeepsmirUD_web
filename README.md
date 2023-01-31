@@ -49,5 +49,4 @@ Please note that the online version is not stable and may not work properly.
 
 If you use DeepsmirUD in your research, please cite the following paper:
 
-> Jianfeng Sun, Jinlong Ru, Zihao Chen, Fei Qi, Lorenzo Ramos-Mucci, Suyuan Chen, Adam P. Cribbs, Li Deng, and Xia Wang. "DeepsmirUD: Precise prediction of regulatory effects on miRNA expression mediated by small molecular compounds using competing deep learning frameworks." bioRxiv (2022).
-
+> Sun J, Ru J, Ramos-Mucci L, et al. DeepsmirUD: Prediction of Regulatory Effects on microRNA Expression Mediated by Small Molecules Using Deep Learning. *International Journal of Molecular Sciences*. 2023;24(3):1878. doi:https://doi.org/10.3390/ijms24031878
